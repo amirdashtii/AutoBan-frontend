@@ -1,14 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import appLogo from '/favicon.svg'
-import PWABadge from './PWABadge.tsx'
-import './App.css'
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import appLogo from "/favicon.svg";
+import PWABadge from "./PWABadge.tsx";
+import "./App.css";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const theme = createTheme({
+    direction: "rtl",
+    palette: {
+      mode: "dark",
+      primary: {
+        main: "#1976d2",
+      },
+      secondary: {
+        main: "#ff4081",
+      },
+    },
+    typography: {
+      fontFamily: ["Vazirmatn", "Tahoma", "Arial", "sans-serif"].join(","),
+    },
+  });
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={appLogo} className="logo" alt="AutoBan logo" />
@@ -30,8 +46,8 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
       <PWABadge />
-    </>
-  )
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
