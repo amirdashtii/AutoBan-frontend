@@ -2,12 +2,42 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import appLogo from "/favicon.svg";
 import PWABadge from "./components/PWABadge";
+import LoadingSpinner from "./components/LoadingSpinner";
 import "./App.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
-function App() {
+import Dashboard from "./pages/Dashboard";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner message="در حال بررسی احراز هویت..." />;
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/signin" replace />;
+};
+
+// Public Route Component (redirects to dashboard if already authenticated)
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner message="در حال بررسی احراز هویت..." />;
+  }
+
+  return isAuthenticated ? (
+    <Navigate to="/dashboard" replace />
+  ) : (
+    <>{children}</>
+  );
+};
+
+function AppContent() {
   const [count, setCount] = useState(0);
   const theme = createTheme({
     direction: "rtl",
@@ -32,40 +62,72 @@ function App() {
           <Route
             path="/"
             element={
-              <>
-                <div>
-                  <a href="https://vite.dev" target="_blank">
-                    <img src={appLogo} className="logo" alt="AutoBan logo" />
-                  </a>
-                  <a href="https://react.dev" target="_blank">
-                    <img
-                      src={reactLogo}
-                      className="logo react"
-                      alt="React logo"
-                    />
-                  </a>
-                </div>
-                <h1>AutoBan</h1>
-                <div className="card">
-                  <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                  </button>
-                  <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
+              <PublicRoute>
+                <>
+                  <div>
+                    <a href="https://vite.dev" target="_blank">
+                      <img src={appLogo} className="logo" alt="AutoBan logo" />
+                    </a>
+                    <a href="https://react.dev" target="_blank">
+                      <img
+                        src={reactLogo}
+                        className="logo react"
+                        alt="React logo"
+                      />
+                    </a>
+                  </div>
+                  <h1>AutoBan</h1>
+                  <div className="card">
+                    <button onClick={() => setCount((count) => count + 1)}>
+                      count is {count}
+                    </button>
+                    <p>
+                      Edit <code>src/App.tsx</code> and save to test HMR
+                    </p>
+                  </div>
+                  <p className="read-the-docs">
+                    Click on the Vite and React logos to learn more
                   </p>
-                </div>
-                <p className="read-the-docs">
-                  Click on the Vite and React logos to learn more
-                </p>
-                <PWABadge />
-              </>
+                  <PWABadge />
+                </>
+              </PublicRoute>
             }
           />
-          <Route path="/signin" element={<Signin />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/signin"
+            element={
+              <PublicRoute>
+                <Signin />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <PublicRoute>
+                <Signup />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
