@@ -5,7 +5,13 @@ import {
   setAuthToken,
   setRefreshToken,
 } from "../utils/api";
-import { ApiResponse, AuthResponse, LoginRequest, User } from "../types/api";
+import {
+  ApiResponse,
+  AuthResponse,
+  LoginRequest,
+  SignupRequest,
+  User,
+} from "../types/api";
 
 // Auth Service
 export class AuthService {
@@ -17,6 +23,20 @@ export class AuthService {
     });
 
     // Store both token
+    setAuthToken(response.access_token);
+    setRefreshToken(response.refresh_token);
+    return response;
+  }
+
+  // Register user
+  static async signup(userData: SignupRequest): Promise<AuthResponse> {
+    const response = await apiRequest<AuthResponse>("/auth/register", {
+      method: HTTP_METHODS.POST,
+      body: JSON.stringify(userData),
+    });
+
+    // Store boeh tokens
+
     setAuthToken(response.access_token);
     setRefreshToken(response.refresh_token);
     return response;

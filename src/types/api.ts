@@ -20,6 +20,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface SignupRequest {
+  phone_number: string;
+  password: string;
+}
+
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;

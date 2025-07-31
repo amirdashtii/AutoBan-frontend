@@ -10,12 +10,16 @@ import {
   Link,
   IconButton,
   InputAdornment,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import MuiCard from "@mui/material/Card";
 import AppTheme from "../theme/AppTheme";
 import ColorModeSelect from "../theme/ColorModeSelect";
 import Autoban from "../assets/autoban.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -60,6 +64,9 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function Signup(props: { disableCustomTheme?: boolean }) {
+  const { signup, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate();
+
   const [phoneError, setPhoneError] = React.useState(false);
   const [phoneErrorMessage, setPhoneErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
@@ -67,12 +74,29 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [passwordFocused, setPasswordFocused] = React.useState(false);
   const [password, setPassword] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+
+  // Clear error when component mounts
+  React.useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    return;
+
+    if (!validateInputs()) {
+      return;
+    }
+
+    try {
+      await signup({ phone_number: phone, password: password });
+      navigate("/dashboard"); // Redirect to dashboard after successful signup
+    } catch (error) {
+      // Error is handled by AuthContext
+      console.error("Signup failed", error);
+    }
   };
 
   const handleMouseDownPassword = (
@@ -82,12 +106,9 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
   };
 
   const validateInputs = () => {
-    const phone = document.getElementById("phone") as HTMLInputElement;
-    const password = document.getElementById("password") as HTMLInputElement;
-
     let isValid = true;
 
-    if (!phone.value || !/^09\d{9}$/.test(phone.value)) {
+    if (!phone || !/^09\d{9}$/.test(phone)) {
       setPhoneError(true);
       setPhoneErrorMessage("شماره تلفن صحیح وارد کنید به صورت: 09XXXXXXXXX");
       isValid = false;
@@ -96,19 +117,19 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
       setPhoneErrorMessage("");
     }
 
-    if (!password.value || password.value.length < 8) {
+    if (!password || password.length < 8) {
       setPasswordError(true);
       setPasswordErrorMessage("رمز عبور باید حداقل 8 کاراکتر باشد");
       isValid = false;
-    } else if (!/[A-Z]/.test(password.value)) {
+    } else if (!/[A-Z]/.test(password)) {
       setPasswordError(true);
       setPasswordErrorMessage("رمز عبور باید حداقل یک حرف بزرگ داشته باشد");
       isValid = false;
-    } else if (!/[a-z]/.test(password.value)) {
+    } else if (!/[a-z]/.test(password)) {
       setPasswordError(true);
       setPasswordErrorMessage("رمز عبور باید حداقل یک حرف کوچک داشته باشد");
       isValid = false;
-    } else if (!/[0-9]/.test(password.value)) {
+    } else if (!/[0-9]/.test(password)) {
       setPasswordError(true);
       setPasswordErrorMessage("رمز عبور باید حداقل یک عدد داشته باشد");
       isValid = false;
@@ -143,8 +164,14 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem,10vw, 2.15rem)" }}
           >
-            ثبت نام
+            ثبت نام در اتوبان
           </Typography>
+          {/*Error Alert*/}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -170,6 +197,8 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
               variant="outlined"
               color={phoneError ? "error" : "primary"}
               label="شماره تلفن"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               slotProps={{ input: { style: { direction: "ltr" } } }}
             />
             <TextField
@@ -180,7 +209,6 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
               name="password"
               placeholder="********"
               autoComplete="current-password"
-              autoFocus
               required
               fullWidth
               variant="outlined"
@@ -215,12 +243,20 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
+              disabled={isLoading}
+              sx={{ position: "relative" }}
             >
-              ثبت نام
+              {isLoading ? (
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                  در حال ثبت نام
+                </>
+              ) : (
+                "ثبت نام"
+              )}
             </Button>
             <Typography sx={{ textAlign: "center" }}>
-              حساب کاربری دارید؟{" "}
+              قبلاً ثبت نام کرده‌اید؟{" "}
               <Link href="/signin" variant="body2" sx={{ alignSelf: "center" }}>
                 وارد اتوبان شوید
               </Link>

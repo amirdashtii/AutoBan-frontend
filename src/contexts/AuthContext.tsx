@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useReducer,
 } from "react";
-import { LoginRequest, User } from "../types/api";
+import { LoginRequest, SignupRequest, User } from "../types/api";
 import { AuthService } from "../services/authService";
 import { clearAuthData, getAuthToken } from "../utils/api";
 
@@ -82,7 +82,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 // Auth Context Interface
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
-  //   signup: (userData: SignupRequest) => Promise<void>;
+  signup: (userData: SignupRequest) => Promise<void>;
   logout: () => Promise<void>;
   //   forgotPassword: (data: ForgotPasswordRequest) => Promise<void>;
   //   resetPassword: (data: ResetPasswordRequest) => Promise<void>;
@@ -158,6 +158,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Signup function
+  const signup = async (userData: SignupRequest) => {
+    try {
+      dispatch({ type: "AUTH_START" });
+      const response = await AuthService.signup(userData);
+
+      // After successful signup, get user info
+      const user = await AuthService.getCurrentUser();
+
+      dispatch({
+        type: "AUTH_SUCCESS",
+        payload: { user, token: response.access_token },
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "خطا در ثبت نام";
+      dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
+      throw error;
+    }
+  };
+
   // Clear error function
   const clearError = () => {
     dispatch({ type: "CLEAR_ERROR" });
@@ -166,7 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     ...state,
     login,
-    //  signup,
+    signup,
     logout,
     //  forgotPassword,
     //  resetPassword,
