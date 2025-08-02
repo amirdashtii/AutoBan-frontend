@@ -18,7 +18,7 @@ import AppTheme from "../theme/AppTheme";
 import ColorModeSelect from "../theme/ColorModeSelect";
 import Autoban from "../assets/autoban.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -76,10 +76,14 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
   const [password, setPassword] = React.useState("");
   const [phone, setPhone] = React.useState("");
 
-  // Clear error when component mounts
+  // Clear error when component unmounts
   React.useEffect(() => {
-    clearError();
-  }, [clearError]);
+    return () => {
+      if (error) {
+        clearError();
+      }
+    };
+  }, [error, clearError]);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -94,8 +98,8 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
       await signup({ phone_number: phone, password: password });
       navigate("/dashboard"); // Redirect to dashboard after successful signup
     } catch (error) {
-      // Error is handled by AuthContext
-      console.error("Signup failed", error);
+      // Error is handled by AuthContext and will be shown in the error state
+      console.error("Signup failed:", error);
     }
   };
 

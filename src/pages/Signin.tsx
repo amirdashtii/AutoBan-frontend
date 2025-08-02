@@ -19,7 +19,7 @@ import AppTheme from "../theme/AppTheme";
 import ColorModeSelect from "../theme/ColorModeSelect";
 import Autoban from "../assets/autoban.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -78,10 +78,14 @@ export default function Signin(props: { disableCustomTheme?: boolean }) {
   const [phone, setPhone] = React.useState("");
   const [open, setOpen] = React.useState(false);
 
-  // Clear error when component mounts
+  // Clear error when component unmounts
   React.useEffect(() => {
-    clearError();
-  }, [clearError]);
+    return () => {
+      if (error) {
+        clearError();
+      }
+    };
+  }, [error, clearError]);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 

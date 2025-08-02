@@ -69,13 +69,14 @@ export const handleApiError = async (response: Response) => {
 
     try {
       const errorData = await response.json();
-      // Check for the new error structure
-      if (errorData.error && errorData.error.Message) {
-        errorMessage =
-          errorData.error.Message.Persian || errorData.error.Message.English;
+      // Always prefer Persian message from the new error structure
+      if (errorData.error?.Message?.Persian) {
+        errorMessage = errorData.error.Message.Persian;
       } else if (errorData.message) {
+        // For legacy error formats
         errorMessage = errorData.message;
-      } else if (errorData.error) {
+      } else if (typeof errorData.error === "string") {
+        // For simple string error messages
         errorMessage = errorData.error;
       }
     } catch {
@@ -92,11 +93,11 @@ export const handleApiError = async (response: Response) => {
 // Refresh token function
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (error?: any) => void;
+  resolve: (value?: unknown) => void;
+  reject: (error?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);
@@ -120,74 +121,69 @@ export const apiRequest = async <T>(
     ...options,
   };
 
-  try {
-    const response = await fetch(url, config);
+  const response = await fetch(url, config);
 
-    // If token is expired (401), try to refresh
-    if (response.status === 401 && !endpoint.includes("/auth/refresh-token")) {
-      if (isRefreshing) {
-        // If already refreshing, wait for it to complete
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(() => {
-          return apiRequest<T>(endpoint, options);
-        });
-      }
-
-      isRefreshing = true;
-
-      try {
-        // Try to refresh token
-        const refreshResponse = await fetch(
-          `${API_BASE_URL}/auth/refresh-token`,
-          {
-            method: "POST",
-            headers: getDefaultHeaders(),
-            body: JSON.stringify({ refresh_token: getRefreshToken() }),
-          }
-        );
-
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          setAuthToken(refreshData.access_token);
-          setRefreshToken(refreshData.refresh_token);
-
-          // Retry the original request
-          const retryConfig: RequestInit = {
-            ...config,
-            headers: {
-              ...getDefaultHeaders(),
-              Authorization: `Bearer ${refreshData.access_token}`,
-            },
-          };
-
-          const retryResponse = await fetch(url, retryConfig);
-          await handleApiError(retryResponse);
-          const data = await retryResponse.json();
-
-          processQueue(null, refreshData.access_token);
-          return data;
-        } else {
-          // Refresh failed, clear auth data
-          clearAuthData();
-          processQueue(new Error("Token refresh failed"));
-          throw new Error("Token refresh failed");
-        }
-      } catch (error) {
-        clearAuthData();
-        processQueue(error);
-        throw error;
-      } finally {
-        isRefreshing = false;
-      }
-    } else {
-      await handleApiError(response);
-      const data = await response.json();
-      return data;
+  // If token is expired (401), try to refresh
+  if (response.status === 401 && !endpoint.includes("/auth/refresh-token")) {
+    if (isRefreshing) {
+      // If already refreshing, wait for it to complete
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then(() => {
+        return apiRequest<T>(endpoint, options);
+      });
     }
-  } catch (error) {
-    console.error("API Request Error:", error);
-    throw error;
+
+    isRefreshing = true;
+
+    try {
+      // Try to refresh token
+      const refreshResponse = await fetch(
+        `${API_BASE_URL}/auth/refresh-token`,
+        {
+          method: "POST",
+          headers: getDefaultHeaders(),
+          body: JSON.stringify({ refresh_token: getRefreshToken() }),
+        }
+      );
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        setAuthToken(refreshData.access_token);
+        setRefreshToken(refreshData.refresh_token);
+
+        // Retry the original request
+        const retryConfig: RequestInit = {
+          ...config,
+          headers: {
+            ...getDefaultHeaders(),
+            Authorization: `Bearer ${refreshData.access_token}`,
+          },
+        };
+
+        const retryResponse = await fetch(url, retryConfig);
+        await handleApiError(retryResponse);
+        const data = await retryResponse.json();
+
+        processQueue(null, refreshData.access_token);
+        return data;
+      } else {
+        // Refresh failed, clear auth data
+        clearAuthData();
+        processQueue(new Error("Token refresh failed"));
+        throw new Error("Token refresh failed");
+      }
+    } catch (error) {
+      clearAuthData();
+      processQueue(error);
+      throw error;
+    } finally {
+      isRefreshing = false;
+    }
   }
+
+  // Handle the original response if no refresh was needed
+  await handleApiError(response);
+  const data = await response.json();
+  return data;
 };
-    
