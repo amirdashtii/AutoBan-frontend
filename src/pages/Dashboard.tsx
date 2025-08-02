@@ -13,8 +13,8 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material";
-import { AccountCircle, Logout, Settings } from "@mui/icons-material";
-import { useAuth } from "../contexts/AuthContext";
+import { Logout, Settings } from "@mui/icons-material";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import AppTheme from "../theme/AppTheme";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -49,10 +49,10 @@ export default function Dashboard() {
 
   // Redirect to signin if not authenticated
   React.useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       navigate('/signin');
     }
-  }, [user, navigate]);
+  }, [isLoading, user, navigate]);
 
   if (isLoading) {
     return (

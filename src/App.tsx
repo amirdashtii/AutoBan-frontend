@@ -9,10 +9,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./hooks/useAuth";
+import React from "react";
 
 // Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = React.memo(({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -20,10 +22,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/signin" replace />;
-};
+});
 
 // Public Route Component (redirects to dashboard if already authenticated)
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+const PublicRoute = React.memo(({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -35,7 +37,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   ) : (
     <>{children}</>
   );
-};
+});
+
 
 function AppContent() {
   const [count, setCount] = useState(0);
