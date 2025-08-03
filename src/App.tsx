@@ -8,9 +8,10 @@ import {
 import { AuthProvider } from "./contexts/AuthContext";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+import MainLayout from "./layouts/MainLayout";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { useAuth } from "./hooks/useAuth";
+import { Box } from "@mui/material";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,7 +37,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <>{children}</>;
@@ -65,65 +66,17 @@ function AppRoutes() {
 
       {/* Protected Routes */}
       <Route
-        path="/dashboard"
+        path="/home"
         element={
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/vehicles"
-        element={
-          <ProtectedRoute>
-            <div>صفحه خودروها (در حال توسعه)</div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/services"
-        element={
-          <ProtectedRoute>
-            <div>صفحه سرویس‌ها (در حال توسعه)</div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/calendar"
-        element={
-          <ProtectedRoute>
-            <div>صفحه تقویم (در حال توسعه)</div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <div>صفحه گزارشات (در حال توسعه)</div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <div>صفحه پروفایل (در حال توسعه)</div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <div>صفحه تنظیمات (در حال توسعه)</div>
+            <MainLayout />
           </ProtectedRoute>
         }
       />
 
       {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
 }
@@ -132,7 +85,9 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppRoutes />
+        <Box sx={{ width: "100vw", maxWidth: "100vw", overflow: "hidden" }}>
+          <AppRoutes />
+        </Box>
       </Router>
     </AuthProvider>
   );

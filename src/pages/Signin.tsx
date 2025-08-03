@@ -106,7 +106,7 @@ export default function Signin(props: { disableCustomTheme?: boolean }) {
 
     try {
       await login({ phone_number: phone, password });
-      navigate("/dashboard"); // Redirect to dashboard after successful login
+      navigate("/home"); // Redirect to home after successful login
     } catch (error) {
       // Error is handled by AuthContext
     }
