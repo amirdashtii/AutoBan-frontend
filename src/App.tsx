@@ -1,137 +1,139 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import appLogo from "/favicon.svg";
-import PWABadge from "./components/PWABadge";
-import LoadingSpinner from "./components/LoadingSpinner";
-import "./App.css";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
-import { AuthProvider } from "./contexts/AuthContext";
+import LoadingSpinner from "./components/LoadingSpinner";
 import { useAuth } from "./hooks/useAuth";
-import React from "react";
 
 // Protected Route Component
-const ProtectedRoute = React.memo(({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return <LoadingSpinner message="در حال بررسی احراز هویت..." />;
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/signin" replace />;
-});
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
 
-// Public Route Component (redirects to dashboard if already authenticated)
-const PublicRoute = React.memo(({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  return <>{children}</>;
+};
+
+// Public Route Component (redirect if already authenticated)
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return <LoadingSpinner message="در حال بررسی احراز هویت..." />;
   }
 
-  return isAuthenticated ? (
-    <Navigate to="/dashboard" replace />
-  ) : (
-    <>{children}</>
-  );
-});
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
+  return <>{children}</>;
+};
 
-function AppContent() {
-  const [count, setCount] = useState(0);
-  const theme = createTheme({
-    direction: "rtl",
-    palette: {
-      mode: "dark",
-      primary: {
-        main: "#1976d2",
-      },
-      secondary: {
-        main: "#ff4081",
-      },
-    },
-    typography: {
-      fontFamily: ["Vazirmatn", "Tahoma", "Arial", "sans-serif"].join(","),
-    },
-  });
-
+function AppRoutes() {
   return (
-    <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <PublicRoute>
-                <>
-                  <div>
-                    <a href="https://vite.dev" target="_blank">
-                      <img src={appLogo} className="logo" alt="AutoBan logo" />
-                    </a>
-                    <a href="https://react.dev" target="_blank">
-                      <img
-                        src={reactLogo}
-                        className="logo react"
-                        alt="React logo"
-                      />
-                    </a>
-                  </div>
-                  <h1>AutoBan</h1>
-                  <div className="card">
-                    <button onClick={() => setCount((count) => count + 1)}>
-                      count is {count}
-                    </button>
-                    <p>
-                      Edit <code>src/App.tsx</code> and save to test HMR
-                    </p>
-                  </div>
-                  <p className="read-the-docs">
-                    Click on the Vite and React logos to learn more
-                  </p>
-                  <PWABadge />
-                </>
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/signin"
-            element={
-              <PublicRoute>
-                <Signin />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <PublicRoute>
-                <Signup />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+    <Routes>
+      {/* Public Routes */}
+      <Route
+        path="/signin"
+        element={
+          <PublicRoute>
+            <Signin />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        }
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vehicles"
+        element={
+          <ProtectedRoute>
+            <div>صفحه خودروها (در حال توسعه)</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/services"
+        element={
+          <ProtectedRoute>
+            <div>صفحه سرویس‌ها (در حال توسعه)</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <div>صفحه تقویم (در حال توسعه)</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <div>صفحه گزارشات (در حال توسعه)</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <div>صفحه پروفایل (در حال توسعه)</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <div>صفحه تنظیمات (در حال توسعه)</div>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <AppRoutes />
+      </Router>
     </AuthProvider>
   );
 }
-
-export default App;

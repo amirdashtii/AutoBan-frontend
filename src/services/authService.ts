@@ -11,6 +11,9 @@ import {
   LoginRequest,
   SignupRequest,
   User,
+  VerificationCodeRequest,
+  VerifyCodeRequest,
+  VerificationResponse,
 } from "../types/api";
 
 // Auth Service
@@ -22,7 +25,7 @@ export class AuthService {
       body: JSON.stringify(credentials),
     });
 
-    // Store both token
+    // Store both tokens
     setAuthToken(response.access_token);
     setRefreshToken(response.refresh_token);
     return response;
@@ -35,8 +38,7 @@ export class AuthService {
       body: JSON.stringify(userData),
     });
 
-    // Store boeh tokens
-
+    // Store both tokens
     setAuthToken(response.access_token);
     setRefreshToken(response.refresh_token);
     return response;
@@ -61,6 +63,46 @@ export class AuthService {
       method: HTTP_METHODS.GET,
     });
 
+    return response;
+  }
+
+  // Send verification code
+  static async sendVerificationCode(
+    data: VerificationCodeRequest
+  ): Promise<VerificationResponse> {
+    return await apiRequest<VerificationResponse>(
+      "/auth/send-verification-code",
+      {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  // Verify phone number
+  static async verifyPhoneNumber(
+    data: VerifyCodeRequest
+  ): Promise<AuthResponse> {
+    const response = await apiRequest<AuthResponse>("/auth/verify-code", {
+      method: HTTP_METHODS.POST,
+      body: JSON.stringify(data),
+    });
+
+    // Store both tokens after verification
+    setAuthToken(response.access_token);
+    setRefreshToken(response.refresh_token);
+    return response;
+  }
+
+  // Refresh token
+  static async refreshToken(): Promise<AuthResponse> {
+    const response = await apiRequest<AuthResponse>("/auth/refresh-token", {
+      method: HTTP_METHODS.POST,
+    });
+
+    // Update both tokens
+    setAuthToken(response.access_token);
+    setRefreshToken(response.refresh_token);
     return response;
   }
 }

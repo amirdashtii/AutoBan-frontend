@@ -5,54 +5,24 @@ import {
   Container,
   Typography,
   Paper,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
-  Divider,
+  Card,
+  CardContent,
+  CardActions,
+  Chip,
 } from "@mui/material";
-import { Logout, Settings } from "@mui/icons-material";
+import {
+  DirectionsCar as CarIcon,
+  Build as ServiceIcon,
+  Event as CalendarIcon,
+  TrendingUp as TrendingUpIcon,
+} from "@mui/icons-material";
 import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import AppTheme from "../theme/AppTheme";
 import LoadingSpinner from "../components/LoadingSpinner";
+import MainLayout from "../components/layout/MainLayout";
 
 export default function Dashboard() {
-  const { user, logout, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/signin');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-    handleClose();
-  };
-
-  const handleSettings = () => {
-    // TODO: Navigate to settings page
-    handleClose();
-  };
-
-  // Redirect to signin if not authenticated
-  React.useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/signin');
-    }
-  }, [isLoading, user, navigate]);
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -68,110 +38,194 @@ export default function Dashboard() {
 
   return (
     <AppTheme>
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              اتوبان
-            </Typography>
-            <div>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="inherit"
-              >
-                <Avatar sx={{ width: 32, height: 32 }}>
-                  {user.first_name
-                    ? user.first_name.charAt(0).toUpperCase()
-                    : user.phone_number}
-                </Avatar>
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem disabled>
-                  <Typography variant="body2" color="text.secondary">
-                    {user.first_name || "کاربر"}
-                  </Typography>
-                </MenuItem>
-                <MenuItem disabled>
-                  <Typography variant="body2" color="text.secondary">
-                    {user.phone_number}
-                  </Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleSettings}>
-                  <Settings sx={{ mr: 1 }} />
-                  تنظیمات
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  <Logout sx={{ mr: 1 }} />
-                  خروج
-                </MenuItem>
-              </Menu>
-            </div>
-          </Toolbar>
-        </AppBar>
-
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <MainLayout>
+        <Container maxWidth="lg">
           <Typography variant="h4" component="h1" gutterBottom>
             خوش آمدید {user.first_name || "کاربر گرامی"}!
           </Typography>
 
-          <Paper sx={{ p: 3, mt: 3 }}>
+          {/* Stats Cards */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
+              gap: 3,
+              mb: 4,
+            }}
+          >
+            <Card>
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <CarIcon color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="h6">خودروها</Typography>
+                </Box>
+                <Typography variant="h4" component="div">
+                  0
+                </Typography>
+                <Typography color="text.secondary">خودرو ثبت شده</Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small" disabled>
+                  مشاهده همه
+                </Button>
+              </CardActions>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <ServiceIcon color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="h6">سرویس‌ها</Typography>
+                </Box>
+                <Typography variant="h4" component="div">
+                  0
+                </Typography>
+                <Typography color="text.secondary">سرویس انجام شده</Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small" disabled>
+                  مشاهده همه
+                </Button>
+              </CardActions>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <CalendarIcon color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="h6">تقویم</Typography>
+                </Box>
+                <Typography variant="h4" component="div">
+                  0
+                </Typography>
+                <Typography color="text.secondary">رویداد پیش‌رو</Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small" disabled>
+                  مشاهده تقویم
+                </Button>
+              </CardActions>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <TrendingUpIcon color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="h6">گزارشات</Typography>
+                </Box>
+                <Typography variant="h4" component="div">
+                  0
+                </Typography>
+                <Typography color="text.secondary">گزارش آماده</Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small" disabled>
+                  مشاهده گزارشات
+                </Button>
+              </CardActions>
+            </Card>
+          </Box>
+
+          {/* User Info */}
+          <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               اطلاعات حساب کاربری
             </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body1">
-                <strong>نام:</strong> {user.first_name || "تنظیم نشده"}
-              </Typography>
-              <Typography variant="body1">
-                <strong>شماره تلفن:</strong> {user.phone_number}
-              </Typography>
-              <Typography variant="body1">
-                <strong>تاریخ عضویت:</strong>{" "}
-                {new Date(user.created_at).toLocaleDateString("fa-IR")}
-              </Typography>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                gap: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="body1">
+                  <strong>نام:</strong>{" "}
+                  {user.first_name
+                    ? `${user.first_name} ${user.last_name || ""}`
+                    : "تنظیم نشده"}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  <strong>شماره تلفن:</strong> {user.phone_number}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1" component="div">
+                  <strong>وضعیت:</strong>{" "}
+                  <Chip
+                    label={user.status === "Active" ? "فعال" : "غیرفعال"}
+                    color={user.status === "Active" ? "success" : "warning"}
+                    size="small"
+                  />
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  <strong>تاریخ عضویت:</strong>{" "}
+                  {new Date(user.created_at).toLocaleDateString("fa-IR")}
+                </Typography>
+              </Box>
             </Box>
           </Paper>
 
-          <Paper sx={{ p: 3, mt: 3 }}>
+          {/* Quick Actions */}
+          <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              امکانات در دسترس
+              اقدامات سریع
             </Typography>
-            <Box sx={{ mt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
-              <Button variant="outlined" disabled>
-                پروفایل
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
+                gap: 2,
+              }}
+            >
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<CarIcon />}
+                disabled
+              >
+                افزودن خودرو
               </Button>
-              <Button variant="outlined" disabled>
-                تنظیمات
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<ServiceIcon />}
+                disabled
+              >
+                ثبت سرویس
               </Button>
-              <Button variant="outlined" disabled>
-                تاریخچه
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<CalendarIcon />}
+                disabled
+              >
+                برنامه‌ریزی
               </Button>
-              <Button variant="outlined" disabled>
-                پشتیبانی
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<TrendingUpIcon />}
+                disabled
+              >
+                گزارش جدید
               </Button>
             </Box>
           </Paper>
         </Container>
-      </Box>
+      </MainLayout>
     </AppTheme>
   );
-} 
+}

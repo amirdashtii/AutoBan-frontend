@@ -37,9 +37,21 @@ export interface User {
   last_name?: string;
   birthday?: string;
   email?: string;
-  role: number;
-  status: number;
+  status: string; // "Active", "Deactivated", "Deleted"
+  role: string; // "User", "Admin", "SuperAdmin"
   created_at: string;
- 
- updated_at: string;
+  updated_at: string;
+}
+
+export interface VerificationCodeRequest {
+  phone_number: string;
+}
+
+export interface VerifyCodeRequest {
+  phone_number: string;
+  code: string;
+}
+
+export interface VerificationResponse {
+  message: string;
 }

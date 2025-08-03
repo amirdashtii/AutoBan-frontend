@@ -20,6 +20,7 @@ import Autoban from "../assets/autoban.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import VerificationDialog from "../components/VerificationDialog";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -75,6 +76,9 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
   const [passwordFocused, setPasswordFocused] = React.useState(false);
   const [password, setPassword] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  
+  // State for verification dialog
+  const [showVerification, setShowVerification] = React.useState(false);
 
   // Clear error when component unmounts
   React.useEffect(() => {
@@ -96,7 +100,8 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
 
     try {
       await signup({ phone_number: phone, password: password });
-      navigate("/dashboard"); // Redirect to dashboard after successful signup
+      // Show verification dialog after successful signup
+      setShowVerification(true);
     } catch (error) {
       // Error is handled by AuthContext and will be shown in the error state
       console.error("Signup failed:", error);
@@ -267,6 +272,12 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
             </Typography>
           </Box>
         </Card>
+        <VerificationDialog
+          open={showVerification}
+          onClose={() => setShowVerification(false)}
+          phoneNumber={phone}
+          onSuccess={() => navigate("/dashboard")}
+        />
       </SignUpContainer>
     </AppTheme>
   );

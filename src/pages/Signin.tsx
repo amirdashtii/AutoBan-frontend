@@ -109,7 +109,6 @@ export default function Signin(props: { disableCustomTheme?: boolean }) {
       navigate("/dashboard"); // Redirect to dashboard after successful login
     } catch (error) {
       // Error is handled by AuthContext
-      console.error("Login failed:", error);
     }
   };
 
