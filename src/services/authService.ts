@@ -47,8 +47,14 @@ export class AuthService {
   // Logout user
   static async logout(): Promise<void> {
     try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        throw new Error("Refresh token not found");
+      }
+
       await apiRequest<ApiResponse>("/auth/logout", {
         method: HTTP_METHODS.POST,
+        body: JSON.stringify({ refresh_token: refreshToken }),
       });
     } catch (error) {
       console.error("Logout error:", error);
@@ -79,19 +85,14 @@ export class AuthService {
     );
   }
 
-  // Verify phone number
-  static async verifyPhoneNumber(
+  // Verify code for account activation
+  static async verifyCode(
     data: VerifyCodeRequest
-  ): Promise<AuthResponse> {
-    const response = await apiRequest<AuthResponse>("/auth/verify-code", {
+  ): Promise<VerificationResponse> {
+    return await apiRequest<VerificationResponse>("/auth/verify-phone", {
       method: HTTP_METHODS.POST,
       body: JSON.stringify(data),
     });
-
-    // Store both tokens after verification
-    setAuthToken(response.access_token);
-    setRefreshToken(response.refresh_token);
-    return response;
   }
 
   // Refresh token

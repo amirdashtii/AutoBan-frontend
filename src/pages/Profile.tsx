@@ -21,6 +21,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Chip,
 } from "@mui/material";
 import {
   Person,
@@ -38,11 +39,14 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../hooks/useAuth";
 import ColorModeSelect from "../theme/ColorModeSelect";
+import AccountActivation from "../components/AccountActivation";
+import LogoutDialog from "../components/LogoutDialog";
 
 export default function Profile() {
   const { user, logout } = useAuth();
   const [openEditDialog, setOpenEditDialog] = React.useState(false);
   const [openPasswordDialog, setOpenPasswordDialog] = React.useState(false);
+  const [openLogoutDialog, setOpenLogoutDialog] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
@@ -55,11 +59,7 @@ export default function Profile() {
   });
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    setOpenLogoutDialog(true);
   };
 
   const handleEditProfile = () => {
@@ -87,6 +87,17 @@ export default function Profile() {
 
   return (
     <Box sx={{ p: 2, pb: 8 }}>
+      {/* Account Activation for inactive users */}
+      {user?.status === "Deactivated" && (
+        <AccountActivation
+          phoneNumber={user.phone_number}
+          onActivationSuccess={() => {
+            // Refresh user data after successful activation
+            window.location.reload();
+          }}
+        />
+      )}
+
       {/* Profile Header */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -110,6 +121,30 @@ export default function Profile() {
                   {user.email}
                 </Typography>
               )}
+              <Box sx={{ mt: 1 }}>
+                <Chip
+                  label={
+                    user?.status === "Active"
+                      ? "فعال"
+                      : user?.status === "Deactivated"
+                      ? "غیرفعال"
+                      : user?.status === "Deleted"
+                      ? "حذف شده"
+                      : "نامشخص"
+                  }
+                  color={
+                    user?.status === "Active"
+                      ? "success"
+                      : user?.status === "Deactivated"
+                      ? "warning"
+                      : user?.status === "Deleted"
+                      ? "error"
+                      : "default"
+                  }
+                  size="small"
+                  variant="outlined"
+                />
+              </Box>
             </Box>
             <Button
               variant="outlined"
@@ -456,6 +491,12 @@ export default function Profile() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Logout Dialog */}
+      <LogoutDialog
+        open={openLogoutDialog}
+        onClose={() => setOpenLogoutDialog(false)}
+      />
     </Box>
   );
 }

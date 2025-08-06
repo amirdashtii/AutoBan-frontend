@@ -19,6 +19,7 @@ import {
   Fab,
 } from "@mui/material";
 import { DirectionsCar, Build, Edit, Delete, Add } from "@mui/icons-material";
+import InactiveUserRestriction from "../components/InactiveUserRestriction";
 
 export default function Vehicles() {
   const [openAddDialog, setOpenAddDialog] = React.useState(false);
@@ -84,154 +85,166 @@ export default function Vehicles() {
   };
 
   return (
-    <Box sx={{ p: 2, pb: 8 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" component="h1">
-          خودروهای من
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAddVehicle}
+    <InactiveUserRestriction>
+      <Box sx={{ p: 2 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
         >
-          افزودن خودرو
-        </Button>
-      </Box>
+          <Typography variant="h4" component="h1">
+            خودروهای من
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleAddVehicle}
+          >
+            افزودن خودرو
+          </Button>
+        </Box>
 
-      {/* Vehicles List */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {mockVehicles.map((vehicle) => (
-          <Box key={vehicle.id}>
-            <Card>
-              <CardContent>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
-                    <Avatar sx={{ bgcolor: "primary.main", mr: 2 }}>
-                      <DirectionsCar />
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="h6" gutterBottom>
-                        {vehicle.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        gutterBottom
-                      >
-                        {vehicle.brand} {vehicle.model} - {vehicle.year}
+        {/* Vehicles List */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {mockVehicles.map((vehicle) => (
+            <Box key={vehicle.id}>
+              <Card>
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", flex: 1 }}
+                    >
+                      <Avatar sx={{ bgcolor: "primary.main", mr: 2 }}>
+                        <DirectionsCar />
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" gutterBottom>
+                          {vehicle.name}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          gutterBottom
+                        >
+                          {vehicle.brand} {vehicle.model} - {vehicle.year}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          پلاک: {vehicle.plate}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Chip
+                      label={getStatusText(vehicle.status)}
+                      color={getStatusColor(vehicle.status) as any}
+                      size="small"
+                    />
+                  </Box>
+
+                  <Box
+                    sx={{
+                      mt: 2,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        آخرین سرویس: {vehicle.lastService}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        پلاک: {vehicle.plate}
+                        سرویس بعدی: {vehicle.nextService}
                       </Typography>
                     </Box>
+                    <Box>
+                      <Button size="small" startIcon={<Build />} sx={{ mr: 1 }}>
+                        سرویس
+                      </Button>
+                      <Button size="small" startIcon={<Edit />} sx={{ mr: 1 }}>
+                        ویرایش
+                      </Button>
+                      <Button size="small" color="error" startIcon={<Delete />}>
+                        حذف
+                      </Button>
+                    </Box>
                   </Box>
-                  <Chip
-                    label={getStatusText(vehicle.status)}
-                    color={getStatusColor(vehicle.status) as any}
-                    size="small"
-                  />
-                </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          ))}
+        </Box>
 
-                <Box
-                  sx={{
-                    mt: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      آخرین سرویس: {vehicle.lastService}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      سرویس بعدی: {vehicle.nextService}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Button size="small" startIcon={<Build />} sx={{ mr: 1 }}>
-                      سرویس
-                    </Button>
-                    <Button size="small" startIcon={<Edit />} sx={{ mr: 1 }}>
-                      ویرایش
-                    </Button>
-                    <Button size="small" color="error" startIcon={<Delete />}>
-                      حذف
-                    </Button>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        ))}
+        {/* Add Vehicle Dialog */}
+        <Dialog
+          open={openAddDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>افزودن خودرو جدید</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 1 }}>
+              <Box sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  label="نام خودرو"
+                  placeholder="مثال: پژو 206"
+                />
+              </Box>
+              <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                <FormControl fullWidth>
+                  <InputLabel>برند</InputLabel>
+                  <Select label="برند">
+                    <MenuItem value="peugeot">پژو</MenuItem>
+                    <MenuItem value="iran-khodro">ایران خودرو</MenuItem>
+                    <MenuItem value="saipa">سایپا</MenuItem>
+                    <MenuItem value="other">سایر</MenuItem>
+                  </Select>
+                </FormControl>
+                <TextField fullWidth label="مدل" placeholder="مثال: 206" />
+              </Box>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="سال ساخت"
+                  placeholder="مثال: 1395"
+                />
+                <TextField
+                  fullWidth
+                  label="پلاک"
+                  placeholder="مثال: 12-345-67"
+                />
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>انصراف</Button>
+            <Button variant="contained" onClick={handleCloseDialog}>
+              افزودن
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Floating Action Button */}
+        <Fab
+          color="primary"
+          aria-label="add vehicle"
+          sx={{ position: "fixed", bottom: 80, right: 16 }}
+          onClick={handleAddVehicle}
+        >
+          <Add />
+        </Fab>
       </Box>
-
-      {/* Add Vehicle Dialog */}
-      <Dialog
-        open={openAddDialog}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>افزودن خودرو جدید</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 1 }}>
-            <Box sx={{ mb: 2 }}>
-              <TextField
-                fullWidth
-                label="نام خودرو"
-                placeholder="مثال: پژو 206"
-              />
-            </Box>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>برند</InputLabel>
-                <Select label="برند">
-                  <MenuItem value="peugeot">پژو</MenuItem>
-                  <MenuItem value="iran-khodro">ایران خودرو</MenuItem>
-                  <MenuItem value="saipa">سایپا</MenuItem>
-                  <MenuItem value="other">سایر</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField fullWidth label="مدل" placeholder="مثال: 206" />
-            </Box>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField fullWidth label="سال ساخت" placeholder="مثال: 1395" />
-              <TextField fullWidth label="پلاک" placeholder="مثال: 12-345-67" />
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>انصراف</Button>
-          <Button variant="contained" onClick={handleCloseDialog}>
-            افزودن
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="add vehicle"
-        sx={{ position: "fixed", bottom: 80, right: 16 }}
-        onClick={handleAddVehicle}
-      >
-        <Add />
-      </Fab>
-    </Box>
+    </InactiveUserRestriction>
   );
 }

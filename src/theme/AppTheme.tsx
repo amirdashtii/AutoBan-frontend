@@ -23,8 +23,7 @@ export default function AppTheme(props: AppThemeProps) {
           typography,
           shadows,
           shape,
-          components: {
-          },
+          components: {},
         });
   }, [disableCustomTheme, themeComponents]);
   if (disableCustomTheme) {

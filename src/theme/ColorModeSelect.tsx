@@ -5,9 +5,18 @@ import Select, { SelectProps } from "@mui/material/Select";
 
 export default function ColorModeSelect(props: SelectProps) {
   const { mode, setMode } = useColorScheme();
+  
+  // Set default to system if no mode is set
+  React.useEffect(() => {
+    if (!mode) {
+      setMode("system");
+    }
+  }, [mode, setMode]);
+  
   if (!mode) {
     return null;
   }
+  
   return (
     <Select
       value={mode}
