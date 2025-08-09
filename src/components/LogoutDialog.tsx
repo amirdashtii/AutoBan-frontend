@@ -10,7 +10,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Logout, Warning } from "@mui/icons-material";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LogoutDialogProps {
   open: boolean;

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Button,
   Dialog,
@@ -43,7 +45,6 @@ export default function ForgotPassword({
           margin="dense"
           id="phone"
           name="phone"
-          label="شماره تلفن"
           placeholder="09XXXXXXXXX"
           type="tel"
           fullWidth

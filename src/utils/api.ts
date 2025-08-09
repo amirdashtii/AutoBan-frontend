@@ -1,6 +1,5 @@
-// API Configuration
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+// API Configuration for client-side requests
+export const API_BASE_URL = "/api";
 
 // HTTP Methods
 export const HTTP_METHODS = {
@@ -17,51 +16,6 @@ export const getDefaultHeaders = (): HeadersInit => ({
   Accept: "application/json",
 });
 
-// Get auth token from localStorage
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem("authToken");
-};
-
-// Set auth token to localStorage
-export const setAuthToken = (token: string): void => {
-  localStorage.setItem("authToken", token);
-};
-
-// Remove auth token from localStorage
-export const removeAuthToken = (): void => {
-  localStorage.removeItem("authToken");
-};
-
-// Get refresh token from localStorage
-export const getRefreshToken = (): string | null => {
-  return localStorage.getItem("refreshToken");
-};
-
-// Set refresh token to localStorage
-export const setRefreshToken = (token: string): void => {
-  localStorage.setItem("refreshToken", token);
-};
-
-// Remove refresh token from localStorage
-export const removeRefreshToken = (): void => {
-  localStorage.removeItem("refreshToken");
-};
-
-// Clear all auth data
-export const clearAuthData = (): void => {
-  removeAuthToken();
-  removeRefreshToken();
-};
-
-// Get headers with auth token
-export const getAuthHeaders = (): HeadersInit => {
-  const token = getAuthToken();
-  return {
-    ...getDefaultHeaders(),
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
-
 // Handle API errors
 export const handleApiError = async (response: Response) => {
   if (!response.ok) {
@@ -69,17 +23,25 @@ export const handleApiError = async (response: Response) => {
 
     try {
       const errorData = await response.json();
-      // Always prefer Persian message from the new error structure
-      if (errorData.error?.Message?.Persian) {
+
+      // Check for the actual backend error structure
+      if (errorData.error?.message?.persian) {
+        errorMessage = errorData.error.message.persian;
+      } else if (errorData.error?.message?.english) {
+        errorMessage = errorData.error.message.english;
+      } else if (errorData.error?.Message?.Persian) {
+        // For different error structure that might exist
         errorMessage = errorData.error.Message.Persian;
+      } else if (errorData.error?.Message?.English) {
+        errorMessage = errorData.error.Message.English;
       } else if (errorData.message) {
-        // For legacy error formats
+        // For simple message field
         errorMessage = errorData.message;
       } else if (typeof errorData.error === "string") {
         // For simple string error messages
         errorMessage = errorData.error;
       }
-    } catch {
+    } catch (parseError) {
       // If response is not JSON, use status text
       errorMessage = response.statusText || errorMessage;
     }
@@ -90,26 +52,8 @@ export const handleApiError = async (response: Response) => {
   return response;
 };
 
-// Refresh token function
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (error?: unknown) => void;
-}> = [];
-
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) {
-      reject(error);
-    } else {
-      resolve(token);
-    }
-  });
-
-  failedQueue = [];
-};
-
-// Generic API request function with automatic token refresh
+// Generic API request function for client-side requests
+// Now all authentication is handled server-side via cookies
 export const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
@@ -117,72 +61,44 @@ export const apiRequest = async <T>(
   const url = `${API_BASE_URL}${endpoint}`;
 
   const config: RequestInit = {
-    headers: getAuthHeaders(),
+    headers: getDefaultHeaders(),
+    credentials: "include", // Include cookies in requests
     ...options,
   };
 
-  const response = await fetch(url, config);
+  let response = await fetch(url, config);
 
-  // If token is expired (401), try to refresh
-  if (response.status === 401 && !endpoint.includes("/auth/refresh-token")) {
-    if (isRefreshing) {
-      // If already refreshing, wait for it to complete
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then(() => {
-        return apiRequest<T>(endpoint, options);
-      });
-    }
-
-    isRefreshing = true;
-
+  // If 401 and not already a refresh request, try to refresh token
+  if (response.status === 401 && !endpoint.includes("/auth/refresh")) {
     try {
       // Try to refresh token
-      const refreshResponse = await fetch(
-        `${API_BASE_URL}/auth/refresh-token`,
-        {
-          method: "POST",
-          headers: getDefaultHeaders(),
-          body: JSON.stringify({ refresh_token: getRefreshToken() }),
-        }
-      );
+      const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: getDefaultHeaders(),
+        credentials: "include",
+        body: JSON.stringify({}),
+      });
 
       if (refreshResponse.ok) {
-        const refreshData = await refreshResponse.json();
-        setAuthToken(refreshData.access_token);
-        setRefreshToken(refreshData.refresh_token);
+        // Wait a bit for cookie to be set
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Retry the original request
-        const retryConfig: RequestInit = {
-          ...config,
-          headers: {
-            ...getDefaultHeaders(),
-            Authorization: `Bearer ${refreshData.access_token}`,
-          },
-        };
+        // Retry original request with new token
+        response = await fetch(url, config);
 
-        const retryResponse = await fetch(url, retryConfig);
-        await handleApiError(retryResponse);
-        const data = await retryResponse.json();
-
-        processQueue(null, refreshData.access_token);
-        return data;
+        // If still 401 after refresh, throw error
+        if (response.status === 401) {
+          throw new Error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
+        }
       } else {
-        // Refresh failed, clear auth data
-        clearAuthData();
-        processQueue(new Error("Token refresh failed"));
-        throw new Error("Token refresh failed");
+        // Refresh failed - let it fall through to normal error handling
+        throw new Error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
       }
-    } catch (error) {
-      clearAuthData();
-      processQueue(error);
-      throw error;
-    } finally {
-      isRefreshing = false;
+    } catch (refreshError) {
+      throw new Error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
     }
   }
 
-  // Handle the original response if no refresh was needed
   await handleApiError(response);
   const data = await response.json();
   return data;

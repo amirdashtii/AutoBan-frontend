@@ -1,66 +1,43 @@
-import {
-  apiRequest,
-  clearAuthData,
-  HTTP_METHODS,
-  setAuthToken,
-  setRefreshToken,
-} from "../utils/api";
+import { apiRequest, HTTP_METHODS } from "@/utils/api";
 import {
   ApiResponse,
   AuthResponse,
   LoginRequest,
   SignupRequest,
   User,
+  SendVerificationCodeRequest,
+  VerifyPhoneRequest,
+  VerificationResponse,
+  // Legacy types
   VerificationCodeRequest,
   VerifyCodeRequest,
-  VerificationResponse,
-} from "../types/api";
+} from "@/types/api";
 
 // Auth Service
 export class AuthService {
-  // Login user
+  // Login
   static async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await apiRequest<AuthResponse>("/auth/login", {
       method: HTTP_METHODS.POST,
       body: JSON.stringify(credentials),
     });
-
-    // Store both tokens
-    setAuthToken(response.access_token);
-    setRefreshToken(response.refresh_token);
     return response;
   }
 
-  // Register user
+  // Signup
   static async signup(userData: SignupRequest): Promise<AuthResponse> {
     const response = await apiRequest<AuthResponse>("/auth/register", {
       method: HTTP_METHODS.POST,
       body: JSON.stringify(userData),
     });
-
-    // Store both tokens
-    setAuthToken(response.access_token);
-    setRefreshToken(response.refresh_token);
     return response;
   }
 
-  // Logout user
+  // Logout
   static async logout(): Promise<void> {
-    try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        throw new Error("Refresh token not found");
-      }
-
-      await apiRequest<ApiResponse>("/auth/logout", {
-        method: HTTP_METHODS.POST,
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      clearAuthData();
-    }
+    await apiRequest<void>("/auth/logout", {
+      method: HTTP_METHODS.POST,
+    });
   }
 
   // Get current user
@@ -68,42 +45,49 @@ export class AuthService {
     const response = await apiRequest<User>("/users/me", {
       method: HTTP_METHODS.GET,
     });
-
     return response;
   }
 
-  // Send verification code
+  // Refresh token
+  static async refreshToken(): Promise<AuthResponse> {
+    const response = await apiRequest<AuthResponse>("/auth/refresh", {
+      method: HTTP_METHODS.POST,
+      body: JSON.stringify({}), // Empty body since refresh token is handled server-side
+    });
+    return response;
+  }
+
+  // Send verification code for account activation
   static async sendVerificationCode(
-    data: VerificationCodeRequest
+    data: SendVerificationCodeRequest
   ): Promise<VerificationResponse> {
-    return await apiRequest<VerificationResponse>(
-      "/auth/send-verification-code",
+    const response = await apiRequest<VerificationResponse>(
+      "/auth/send-verifycode",
       {
         method: HTTP_METHODS.POST,
         body: JSON.stringify(data),
       }
     );
+    return response;
   }
 
-  // Verify code for account activation
-  static async verifyCode(
-    data: VerifyCodeRequest
-  ): Promise<VerificationResponse> {
-    return await apiRequest<VerificationResponse>("/auth/verify-phone", {
+  // Verify phone and activate account
+  static async verifyPhone(data: VerifyPhoneRequest): Promise<ApiResponse> {
+    const response = await apiRequest<ApiResponse>("/auth/verify-phone", {
       method: HTTP_METHODS.POST,
       body: JSON.stringify(data),
     });
+    return response;
   }
 
-  // Refresh token
-  static async refreshToken(): Promise<AuthResponse> {
-    const response = await apiRequest<AuthResponse>("/auth/refresh-token", {
-      method: HTTP_METHODS.POST,
-    });
+  // Legacy methods (keeping for backward compatibility)
+  static async sendVerificationCodeLegacy(
+    data: VerificationCodeRequest
+  ): Promise<VerificationResponse> {
+    return this.sendVerificationCode(data);
+  }
 
-    // Update both tokens
-    setAuthToken(response.access_token);
-    setRefreshToken(response.refresh_token);
-    return response;
+  static async verifyCodeLegacy(data: VerifyCodeRequest): Promise<ApiResponse> {
+    return this.verifyPhone(data);
   }
 }

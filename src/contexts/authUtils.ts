@@ -1,63 +1,62 @@
 import { createContext } from "react";
-import { LoginRequest, SignupRequest, User } from "../types/api";
+import { LoginRequest, SignupRequest, User } from "@/types/api";
 
 // Auth State Interface
 export interface AuthState {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
 }
 
 // Auth Action Types
-export type AuthAction =
+type AuthAction =
   | { type: "AUTH_START" }
-  | { type: "AUTH_SUCCESS"; payload: { user: User; token: string } }
-  | { type: "AUTH_FAILURE"; payload: string }
+  | { type: "AUTH_SUCCESS"; payload: { user: User } }
+  | { type: "AUTH_ERROR"; payload: string }
   | { type: "AUTH_LOGOUT" }
   | { type: "CLEAR_ERROR" };
-
-import { getAuthToken } from "../utils/api";
 
 // Initial State
 export const initialState: AuthState = {
   user: null,
-  token: getAuthToken(),
-  isLoading: true, // Start with loading true
+  isLoading: true, // Start with loading true until auth check completes
   isAuthenticated: false,
   error: null,
 };
 
 // Auth Reducer
-export const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+export const authReducer = (
+  state: AuthState,
+  action: AuthAction
+): AuthState => {
   switch (action.type) {
     case "AUTH_START":
       return {
         ...state,
+        isLoading: true,
         error: null,
       };
     case "AUTH_SUCCESS":
       return {
         ...state,
         user: action.payload.user,
-        token: action.payload.token,
         isLoading: false,
         isAuthenticated: true,
         error: null,
       };
-    case "AUTH_FAILURE":
+    case "AUTH_ERROR":
       return {
         ...state,
+        user: null,
         isLoading: false,
-        error: action.payload,
         isAuthenticated: false,
+        error: action.payload,
       };
     case "AUTH_LOGOUT":
       return {
         ...state,
         user: null,
-        token: null,
         isLoading: false,
         isAuthenticated: false,
         error: null,
@@ -72,14 +71,15 @@ export const authReducer = (state: AuthState, action: AuthAction): AuthState => 
   }
 };
 
-// Auth Context Interface
+// Auth Context Type
 export interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>;
-  signup: (userData: SignupRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<any>;
+  signup: (userData: SignupRequest) => Promise<any>;
   logout: () => Promise<void>;
   clearError: () => void;
-  checkAuth: () => Promise<void>;
 }
 
-// Create Context
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Auth Context
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);

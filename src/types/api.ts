@@ -43,6 +43,21 @@ export interface User {
   updated_at: string;
 }
 
+// Phone Verification Types
+export interface SendVerificationCodeRequest {
+  phone_number: string;
+}
+
+export interface VerifyPhoneRequest {
+  phone_number: string;
+  code: string;
+}
+
+export interface VerificationResponse {
+  message: string;
+}
+
+// Legacy types (keeping for backward compatibility)
 export interface VerificationCodeRequest {
   phone_number: string;
 }
@@ -50,8 +65,4 @@ export interface VerificationCodeRequest {
 export interface VerifyCodeRequest {
   phone_number: string;
   code: string;
-}
-
-export interface VerificationResponse {
-  message: string;
 }

@@ -1,86 +1,82 @@
-import React from "react";
+import React, { useState } from "react";
 import {
+  Alert,
+  AlertTitle,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Box,
   Typography,
-  Card,
-  CardContent,
-  Button,
-  Alert,
 } from "@mui/material";
-import { Error, Security } from "@mui/icons-material";
-import { useAuth } from "../hooks/useAuth";
+import { Warning, PhoneAndroid } from "@mui/icons-material";
+import { useAuth } from "@/hooks/useAuth";
+import AccountActivation from "./AccountActivation";
 
-interface InactiveUserRestrictionProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}
-
-export default function InactiveUserRestriction({
-  children,
-  fallback,
-}: InactiveUserRestrictionProps) {
+export default function InactiveUserRestriction() {
   const { user } = useAuth();
+  const [showActivationDialog, setShowActivationDialog] = useState(false);
 
-  // If user is active, show children
-  if (user?.status === "Active") {
-    return <>{children}</>;
+  // Don't show if user is active or doesn't exist
+  if (!user || user.status === "Active") {
+    return null;
   }
 
-  // If user is deactivated, show restriction message
-  if (user?.status === "Deactivated") {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Card sx={{ bgcolor: "warning.light" }}>
-          <CardContent>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <Security color="warning" sx={{ mr: 1 }} />
-              <Typography variant="h6">دسترسی محدود</Typography>
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              حساب کاربری شما هنوز فعال نشده است. برای استفاده از این بخش، لطفاً
-              ابتدا حساب کاربری خود را فعال کنید.
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => {
-                // Navigate to profile page for activation
-                window.location.href = "/home?tab=profile";
-              }}
-            >
-              فعال‌سازی حساب کاربری
-            </Button>
-          </CardContent>
-        </Card>
-      </Box>
-    );
-  }
+  const handleActivationSuccess = () => {
+    setShowActivationDialog(false);
+    // Refresh page to update user status
+    window.location.reload();
+  };
 
-  // If user is deleted, show error
-  if (user?.status === "Deleted") {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="error" icon={<Error />}>
-          <Typography variant="h6" gutterBottom>
-            حساب کاربری حذف شده
-          </Typography>
-          <Typography variant="body2">
-            حساب کاربری شما حذف شده است. لطفاً با پشتیبانی تماس بگیرید.
-          </Typography>
-        </Alert>
-      </Box>
-    );
-  }
-
-  // Show fallback or default message
-  return fallback ? (
-    <>{fallback}</>
-  ) : (
-    <Box sx={{ p: 2 }}>
-      <Alert severity="info">
-        <Typography variant="body2">
-          در حال بارگذاری اطلاعات کاربر...
-        </Typography>
+  return (
+    <>
+      <Alert
+        severity="warning"
+        sx={{ mb: 2 }}
+        action={
+          <Button
+            color="inherit"
+            size="small"
+            startIcon={<PhoneAndroid />}
+            onClick={() => setShowActivationDialog(true)}
+          >
+            فعال‌سازی حساب
+          </Button>
+        }
+      >
+        <AlertTitle>حساب کاربری شما فعال نیست</AlertTitle>
+        برای استفاده از تمام امکانات، لطفاً حساب خود را با تایید شماره تلفن فعال
+        کنید.
       </Alert>
-    </Box>
+
+      <Dialog
+        open={showActivationDialog}
+        onClose={() => setShowActivationDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <PhoneAndroid color="primary" />
+            <Typography variant="h6">فعال‌سازی حساب کاربری</Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <AccountActivation
+            phoneNumber={user.phone_number}
+            onActivationSuccess={handleActivationSuccess}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setShowActivationDialog(false)}
+            color="inherit"
+          >
+            بستن
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

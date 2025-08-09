@@ -14,7 +14,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { Phone, CheckCircle, Error } from "@mui/icons-material";
-import { AuthService } from "../services/authService";
+import { AuthService } from "@/services/authService";
 
 interface AccountActivationProps {
   phoneNumber: string;
@@ -57,7 +57,7 @@ export default function AccountActivation({
     setError(null);
 
     try {
-      await AuthService.verifyCode({
+      await AuthService.verifyPhone({
         phone_number: phoneNumber,
         code: code.trim(),
       });

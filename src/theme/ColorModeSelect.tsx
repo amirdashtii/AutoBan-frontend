@@ -1,37 +1,50 @@
-import * as React from "react";
+import React from "react";
+import {
+  FormControl,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from "@mui/material";
 import { useColorScheme } from "@mui/material/styles";
-import MenuItem from "@mui/material/MenuItem";
-import Select, { SelectProps } from "@mui/material/Select";
+import {
+  Brightness4,
+  Brightness7,
+  SettingsBrightness,
+} from "@mui/icons-material";
 
-export default function ColorModeSelect(props: SelectProps) {
+interface ColorModeSelectProps {
+  size?: "small" | "medium";
+}
+
+export default function ColorModeSelect({
+  size = "medium",
+}: ColorModeSelectProps) {
   const { mode, setMode } = useColorScheme();
-  
-  // Set default to system if no mode is set
-  React.useEffect(() => {
-    if (!mode) {
-      setMode("system");
-    }
-  }, [mode, setMode]);
-  
-  if (!mode) {
-    return null;
-  }
-  
+
+  const handleChange = (event: SelectChangeEvent) => {
+    const newMode = event.target.value as "light" | "dark" | "system";
+    setMode(newMode);
+  };
+
+  // Use current mode or fallback to 'system'
+  const currentMode = mode || "system";
+
   return (
-    <Select
-      value={mode}
-      onChange={(event) =>
-        setMode(event.target.value as "system" | "light" | "dark")
-      }
-      SelectDisplayProps={{
-        // @ts-ignore
-        "data-screenshot": "toggle-mode",
-      }}
-      {...props}
-    >
-      <MenuItem value="system">سیستم</MenuItem>
-      <MenuItem value="light">روشن</MenuItem>
-      <MenuItem value="dark">تاریک</MenuItem>
-    </Select>
+    <FormControl size={size}>
+      <Select value={currentMode} onChange={handleChange}>
+        <MenuItem value="system">
+          <SettingsBrightness sx={{ mr: 1, fontSize: 18 }} />
+          سیستم
+        </MenuItem>
+        <MenuItem value="light">
+          <Brightness7 sx={{ mr: 1, fontSize: 18 }} />
+          روشن
+        </MenuItem>
+        <MenuItem value="dark">
+          <Brightness4 sx={{ mr: 1, fontSize: 18 }} />
+          تاریک
+        </MenuItem>
+      </Select>
+    </FormControl>
   );
 }
