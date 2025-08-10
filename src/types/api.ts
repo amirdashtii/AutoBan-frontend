@@ -57,6 +57,21 @@ export interface VerificationResponse {
   message: string;
 }
 
+// Forgot Password Types
+export interface ForgotPasswordRequest {
+  phone_number: string;
+}
+
+export interface ResetPasswordRequest {
+  phone_number: string;
+  new_password: string;
+  verification_code: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
 // Legacy types (keeping for backward compatibility)
 export interface VerificationCodeRequest {
   phone_number: string;

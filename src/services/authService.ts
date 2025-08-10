@@ -8,6 +8,9 @@ import {
   SendVerificationCodeRequest,
   VerifyPhoneRequest,
   VerificationResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ForgotPasswordResponse,
   // Legacy types
   VerificationCodeRequest,
   VerifyCodeRequest,
@@ -74,6 +77,31 @@ export class AuthService {
   // Verify phone and activate account
   static async verifyPhone(data: VerifyPhoneRequest): Promise<ApiResponse> {
     const response = await apiRequest<ApiResponse>("/auth/verify-phone", {
+      method: HTTP_METHODS.POST,
+      body: JSON.stringify(data),
+    });
+    return response;
+  }
+
+  // Forgot password - send verification code
+  static async forgotPassword(
+    data: ForgotPasswordRequest
+  ): Promise<ForgotPasswordResponse> {
+    const response = await apiRequest<ForgotPasswordResponse>(
+      "/auth/forgot-password",
+      {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      }
+    );
+    return response;
+  }
+
+  // Reset password with verification code
+  static async resetPassword(
+    data: ResetPasswordRequest
+  ): Promise<AuthResponse> {
+    const response = await apiRequest<AuthResponse>("/auth/reset-password", {
       method: HTTP_METHODS.POST,
       body: JSON.stringify(data),
     });
