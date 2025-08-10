@@ -106,74 +106,71 @@ export default function History() {
   };
 
   return (
-    <InactiveUserRestriction>
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          تاریخچه سرویس‌ها
-        </Typography>
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h4" gutterBottom>
+        تاریخچه سرویس‌ها
+      </Typography>
 
-        <Card>
-          <CardContent>
-            <Timeline>
-              {historyData.map((item) => (
-                <TimelineItem key={item.id}>
-                  <TimelineSeparator>
-                    <TimelineDot sx={{ bgcolor: getServiceColor(item.type) }} />
-                    <TimelineConnector />
-                  </TimelineSeparator>
-                  <TimelineContent>
-                    <Card sx={{ mb: 2 }}>
-                      <CardContent>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            mb: 1,
-                          }}
-                        >
-                          <Typography variant="h6">
-                            {getServiceTypeText(item.type)}
-                          </Typography>
-                          <Chip
-                            label="تکمیل شده"
-                            color="success"
-                            size="small"
-                          />
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          gutterBottom
-                        >
-                          {item.vehicle} - {item.date}
+      {/* Account Activation Warning */}
+      <InactiveUserRestriction />
+
+      <Card>
+        <CardContent>
+          <Timeline>
+            {historyData.map((item) => (
+              <TimelineItem key={item.id}>
+                <TimelineSeparator>
+                  <TimelineDot sx={{ bgcolor: getServiceColor(item.type) }} />
+                  <TimelineConnector />
+                </TimelineSeparator>
+                <TimelineContent>
+                  <Card sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="h6">
+                          {getServiceTypeText(item.type)}
                         </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          gutterBottom
-                        >
-                          کیلومتر: {item.mileage} - هزینه: {item.cost} تومان
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          gutterBottom
-                        >
-                          {item.description}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          📍 {item.location}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </TimelineContent>
-                </TimelineItem>
-              ))}
-            </Timeline>
-          </CardContent>
-        </Card>
-      </Box>
-    </InactiveUserRestriction>
+                        <Chip label="تکمیل شده" color="success" size="small" />
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        {item.vehicle} - {item.date}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        کیلومتر: {item.mileage} - هزینه: {item.cost} تومان
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        {item.description}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        📍 {item.location}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </TimelineContent>
+              </TimelineItem>
+            ))}
+          </Timeline>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

@@ -147,205 +147,206 @@ export default function Services() {
   });
 
   return (
-    <InactiveUserRestriction>
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          سرویس‌های خودرو
-        </Typography>
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h4" gutterBottom>
+        سرویس‌های خودرو
+      </Typography>
 
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <Tabs value={tabValue} onChange={handleTabChange}>
-                <Tab label="تکمیل شده" />
-                <Tab label="برنامه‌ریزی شده" />
-                <Tab label="در انتظار" />
-              </Tabs>
-            </Box>
+      {/* Account Activation Warning */}
+      <InactiveUserRestriction />
 
-            <TabPanel value={tabValue} index={0}>
-              <List>
-                {filteredServices.map((service) => (
-                  <ListItem
-                    key={service.id}
-                    sx={{
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Build color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={getServiceTypeText(service.type)}
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {service.vehicle} - {service.date}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
-                            تومان
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {service.description}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    <Chip
-                      label={getStatusText(service.status)}
-                      color={getStatusColor(service.status) as any}
-                      size="small"
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </TabPanel>
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs value={tabValue} onChange={handleTabChange}>
+              <Tab label="تکمیل شده" />
+              <Tab label="برنامه‌ریزی شده" />
+              <Tab label="در انتظار" />
+            </Tabs>
+          </Box>
 
-            <TabPanel value={tabValue} index={1}>
-              <List>
-                {filteredServices.map((service) => (
-                  <ListItem
-                    key={service.id}
-                    sx={{
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Schedule color="warning" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={getServiceTypeText(service.type)}
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {service.vehicle} - {service.date}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
-                            تومان
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {service.description}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    <Chip
-                      label={getStatusText(service.status)}
-                      color={getStatusColor(service.status) as any}
-                      size="small"
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </TabPanel>
+          <TabPanel value={tabValue} index={0}>
+            <List>
+              {filteredServices.map((service) => (
+                <ListItem
+                  key={service.id}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <ListItemIcon>
+                    <Build color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={getServiceTypeText(service.type)}
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.vehicle} - {service.date}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
+                          تومان
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.description}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                  <Chip
+                    label={getStatusText(service.status)}
+                    color={getStatusColor(service.status) as any}
+                    size="small"
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </TabPanel>
 
-            <TabPanel value={tabValue} index={2}>
-              <List>
-                {filteredServices.map((service) => (
-                  <ListItem
-                    key={service.id}
-                    sx={{
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Warning color="info" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={getServiceTypeText(service.type)}
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {service.vehicle} - {service.date}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
-                            تومان
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {service.description}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    <Chip
-                      label={getStatusText(service.status)}
-                      color={getStatusColor(service.status) as any}
-                      size="small"
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </TabPanel>
-          </CardContent>
-        </Card>
+          <TabPanel value={tabValue} index={1}>
+            <List>
+              {filteredServices.map((service) => (
+                <ListItem
+                  key={service.id}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <ListItemIcon>
+                    <Schedule color="warning" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={getServiceTypeText(service.type)}
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.vehicle} - {service.date}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
+                          تومان
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.description}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                  <Chip
+                    label={getStatusText(service.status)}
+                    color={getStatusColor(service.status) as any}
+                    size="small"
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </TabPanel>
 
-        {/* Add Service Dialog */}
-        <Dialog
-          open={openDialog}
-          onClose={() => setOpenDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>افزودن سرویس جدید</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>نوع سرویس</InputLabel>
-                <Select label="نوع سرویس">
-                  <MenuItem value="oil_change">تعویض روغن</MenuItem>
-                  <MenuItem value="filter_change">تعویض فیلتر</MenuItem>
-                  <MenuItem value="inspection">بررسی فنی</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>خودرو</InputLabel>
-                <Select label="خودرو">
-                  <MenuItem value="peugeot_206">پژو 206</MenuItem>
-                  <MenuItem value="samand">سمند</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <TextField
-                fullWidth
-                label="تاریخ"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField fullWidth label="کیلومتر" />
-            </Box>
-            <TextField fullWidth label="توضیحات" multiline rows={3} />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>انصراف</Button>
-            <Button variant="contained" onClick={() => setOpenDialog(false)}>
-              افزودن
-            </Button>
-          </DialogActions>
-        </Dialog>
+          <TabPanel value={tabValue} index={2}>
+            <List>
+              {filteredServices.map((service) => (
+                <ListItem
+                  key={service.id}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <ListItemIcon>
+                    <Warning color="info" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={getServiceTypeText(service.type)}
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.vehicle} - {service.date}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
+                          تومان
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.description}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                  <Chip
+                    label={getStatusText(service.status)}
+                    color={getStatusColor(service.status) as any}
+                    size="small"
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </TabPanel>
+        </CardContent>
+      </Card>
 
-        {/* Floating Action Button */}
-        <Fab
-          color="primary"
-          aria-label="add service"
-          sx={{ position: "fixed", bottom: 80, right: 16 }}
-          onClick={() => setOpenDialog(true)}
-        >
-          <Add />
-        </Fab>
-      </Box>
-    </InactiveUserRestriction>
+      {/* Add Service Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>افزودن سرویس جدید</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel>نوع سرویس</InputLabel>
+              <Select label="نوع سرویس">
+                <MenuItem value="oil_change">تعویض روغن</MenuItem>
+                <MenuItem value="filter_change">تعویض فیلتر</MenuItem>
+                <MenuItem value="inspection">بررسی فنی</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>خودرو</InputLabel>
+              <Select label="خودرو">
+                <MenuItem value="peugeot_206">پژو 206</MenuItem>
+                <MenuItem value="samand">سمند</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <TextField
+              fullWidth
+              label="تاریخ"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField fullWidth label="کیلومتر" />
+          </Box>
+          <TextField fullWidth label="توضیحات" multiline rows={3} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>انصراف</Button>
+          <Button variant="contained" onClick={() => setOpenDialog(false)}>
+            افزودن
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add service"
+        sx={{ position: "fixed", bottom: 80, right: 16 }}
+        onClick={() => setOpenDialog(true)}
+      >
+        <Add />
+      </Fab>
+    </Box>
   );
 }

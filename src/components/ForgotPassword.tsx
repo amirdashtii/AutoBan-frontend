@@ -301,7 +301,7 @@ export default function ForgotPassword({
                 {index === 2 && (
                   <Box>
                     <TextField
-                      fullWidth
+          fullWidth
                       label="رمز عبور جدید"
                       type={showPassword ? "text" : "password"}
                       value={newPassword}
