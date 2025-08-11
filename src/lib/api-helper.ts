@@ -8,7 +8,7 @@ interface ProxyOptions {
   endpoint: string;
   method: string;
   includeAuthToken?: boolean;
-  body?: any;
+  body?: unknown;
 }
 
 export async function proxyToBackend({
@@ -37,13 +37,16 @@ export async function proxyToBackend({
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    // Check if response is JSON
+    // Handle 204 No Content or successful non-JSON responses gracefully
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      // Not JSON response, likely HTML error page
+      if (response.ok) {
+        // Success with no JSON body (e.g., 204)
+        return { data: null, response };
+      }
+      // Not OK and not JSON → try to read text and return standardized error
       const text = await response.text();
-      console.error("Non-JSON response from backend:", text);
-
+      console.error("Non-JSON error response from backend:", text);
       return NextResponse.json(
         {
           error: {

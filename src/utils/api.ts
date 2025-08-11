@@ -100,6 +100,18 @@ export const apiRequest = async <T>(
   }
 
   await handleApiError(response);
+
+  // Tolerate empty responses (e.g., 204 No Content, or empty 200)
+  const contentLength = response.headers.get("content-length");
+  const contentType = response.headers.get("content-type") || "";
+  if (
+    response.status === 204 ||
+    contentLength === "0" ||
+    (!contentType.includes("application/json") && response.ok)
+  ) {
+    return undefined as unknown as T;
+  }
+
   const data = await response.json();
   return data;
 };

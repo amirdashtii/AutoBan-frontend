@@ -15,7 +15,16 @@ import InactiveUserRestriction from "@/components/InactiveUserRestriction";
 export default function DashboardHome() {
   const router = useRouter();
 
-  const quickActions = [
+  type QuickActionColor = "primary" | "success" | "info" | "warning";
+  interface QuickAction {
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    color: QuickActionColor;
+    path: string;
+  }
+
+  const quickActions: QuickAction[] = [
     {
       title: "خودروها",
       description: "مدیریت خودروهای خود",
@@ -100,7 +109,7 @@ export default function DashboardHome() {
                 variant="outlined"
                 size="small"
                 startIcon={<Add />}
-                color={action.color as any}
+                color={action.color}
               >
                 مدیریت
               </Button>

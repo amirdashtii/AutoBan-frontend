@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { LoginRequest, SignupRequest, User } from "@/types/api";
+import { LoginRequest, SignupRequest, User, AuthResponse } from "@/types/api";
 
 // Auth State Interface
 export interface AuthState {
@@ -73,8 +73,8 @@ export const authReducer = (
 
 // Auth Context Type
 export interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<any>;
-  signup: (userData: SignupRequest) => Promise<any>;
+  login: (credentials: LoginRequest) => Promise<AuthResponse>;
+  signup: (userData: SignupRequest) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   clearError: () => void;
 }

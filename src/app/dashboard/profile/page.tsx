@@ -43,10 +43,10 @@ import { useAuth } from "@/hooks/useAuth";
 import ColorModeSelect from "@/theme/ColorModeSelect";
 import AccountActivation from "@/components/AccountActivation";
 import LogoutDialog from "@/components/LogoutDialog";
-import { Metadata } from "next";
+import type { SelectChangeEvent } from "@mui/material/Select";
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [openEditDialog, setOpenEditDialog] = React.useState(false);
   const [openPasswordDialog, setOpenPasswordDialog] = React.useState(false);
   const [openLogoutDialog, setOpenLogoutDialog] = React.useState(false);
@@ -81,10 +81,10 @@ export default function Profile() {
       });
     };
 
-  const handleLanguageChange = (event: any) => {
+  const handleLanguageChange = (event: SelectChangeEvent) => {
     setSettings({
       ...settings,
-      language: event.target.value,
+      language: String(event.target.value),
     });
   };
 

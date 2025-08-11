@@ -3,15 +3,15 @@ import { proxyToBackend } from "@/lib/api-helper";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const result = await proxyToBackend({
-    endpoint: `/user/vehicles/${params.id}`,
+    endpoint: `/user/vehicles/${id}`,
     method: "GET",
     includeAuthToken: true,
   });
 
-  // If it's already a NextResponse (error case), return it
   if (result instanceof NextResponse) {
     return result;
   }
@@ -22,18 +22,18 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const body = await request.json();
+  const { id } = await context.params;
 
   const result = await proxyToBackend({
-    endpoint: `/user/vehicles/${params.id}`,
+    endpoint: `/user/vehicles/${id}`,
     method: "PUT",
     includeAuthToken: true,
     body,
   });
 
-  // If it's already a NextResponse (error case), return it
   if (result instanceof NextResponse) {
     return result;
   }
@@ -44,19 +44,22 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const result = await proxyToBackend({
-    endpoint: `/user/vehicles/${params.id}`,
+    endpoint: `/user/vehicles/${id}`,
     method: "DELETE",
     includeAuthToken: true,
   });
 
-  // If it's already a NextResponse (error case), return it
   if (result instanceof NextResponse) {
     return result;
   }
 
-  const { data, response } = result;
-  return NextResponse.json(data, { status: response.status });
+  const { response } = result;
+  return new NextResponse(null, {
+    status: 204,
+    statusText: response.statusText,
+  });
 }

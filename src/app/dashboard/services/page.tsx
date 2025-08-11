@@ -113,7 +113,15 @@ export default function Services() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  type ChipColor =
+    | "default"
+    | "primary"
+    | "secondary"
+    | "error"
+    | "info"
+    | "success"
+    | "warning";
+  const getStatusColor = (status: string): ChipColor => {
     switch (status) {
       case "completed":
         return "success";
@@ -199,7 +207,7 @@ export default function Services() {
                   />
                   <Chip
                     label={getStatusText(service.status)}
-                    color={getStatusColor(service.status) as any}
+                    color={getStatusColor(service.status)}
                     size="small"
                   />
                 </ListItem>
@@ -241,7 +249,7 @@ export default function Services() {
                   />
                   <Chip
                     label={getStatusText(service.status)}
-                    color={getStatusColor(service.status) as any}
+                    color={getStatusColor(service.status)}
                     size="small"
                   />
                 </ListItem>
@@ -283,7 +291,7 @@ export default function Services() {
                   />
                   <Chip
                     label={getStatusText(service.status)}
-                    color={getStatusColor(service.status) as any}
+                    color={getStatusColor(service.status)}
                     size="small"
                   />
                 </ListItem>

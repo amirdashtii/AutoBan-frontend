@@ -133,7 +133,7 @@ export interface UserVehicle {
   license_plate: string;
   vin: string;
   current_mileage: number;
-  purchase_date: string;
+  purchase_date?: string;
   // Additional fields for display
   generation?: VehicleGeneration;
   model?: VehicleModel;
