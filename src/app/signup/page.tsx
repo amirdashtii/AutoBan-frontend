@@ -67,9 +67,9 @@ export default function Signup() {
     try {
       await signup({ phone_number: phone, password: password });
       router.push("/dashboard");
-    } catch (error) {
+    } catch (_e) {
       // Error is handled by AuthContext and will be shown in the error state
-      console.error("Signup failed:", error);
+      // console.error("Signup failed:", _e);
     }
   };
 

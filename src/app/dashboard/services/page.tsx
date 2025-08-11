@@ -9,10 +9,6 @@ import {
   Button,
   Tabs,
   Tab,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Chip,
   Dialog,
   DialogTitle,
@@ -35,6 +31,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 import InactiveUserRestriction from "@/components/InactiveUserRestriction";
+import { ListItemCard } from "@/components/ui";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -96,9 +93,8 @@ export default function Services() {
     },
   ]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setTabValue(newValue);
-  };
 
   const getServiceTypeText = (type: string) => {
     switch (type) {
@@ -156,9 +152,7 @@ export default function Services() {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h4" gutterBottom>
-        سرویس‌های خودرو
-      </Typography>
+      {/* Top header removed per design */}
 
       {/* Account Activation Warning */}
       <InactiveUserRestriction />
@@ -174,129 +168,63 @@ export default function Services() {
           </Box>
 
           <TabPanel value={tabValue} index={0}>
-            <List>
+            <Box sx={{ display: "grid", gap: 1.25 }}>
               {filteredServices.map((service) => (
-                <ListItem
+                <ListItemCard
                   key={service.id}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    mb: 1,
-                  }}
-                >
-                  <ListItemIcon>
-                    <Build color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={getServiceTypeText(service.type)}
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {service.vehicle} - {service.date}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
-                          تومان
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {service.description}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <Chip
-                    label={getStatusText(service.status)}
-                    color={getStatusColor(service.status)}
-                    size="small"
-                  />
-                </ListItem>
+                  title={getServiceTypeText(service.type)}
+                  subtitle={`${service.vehicle} - ${service.date} | کیلومتر: ${service.mileage} - هزینه: ${service.cost} تومان`}
+                  icon={<Build color="primary" />}
+                  actions={
+                    <Chip
+                      label={getStatusText(service.status)}
+                      color={getStatusColor(service.status)}
+                      size="small"
+                    />
+                  }
+                />
               ))}
-            </List>
+            </Box>
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
-            <List>
+            <Box sx={{ display: "grid", gap: 1.25 }}>
               {filteredServices.map((service) => (
-                <ListItem
+                <ListItemCard
                   key={service.id}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    mb: 1,
-                  }}
-                >
-                  <ListItemIcon>
-                    <Schedule color="warning" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={getServiceTypeText(service.type)}
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {service.vehicle} - {service.date}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
-                          تومان
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {service.description}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <Chip
-                    label={getStatusText(service.status)}
-                    color={getStatusColor(service.status)}
-                    size="small"
-                  />
-                </ListItem>
+                  title={getServiceTypeText(service.type)}
+                  subtitle={`${service.vehicle} - ${service.date} | کیلومتر: ${service.mileage} - هزینه: ${service.cost} تومان`}
+                  icon={<Schedule color="warning" />}
+                  actions={
+                    <Chip
+                      label={getStatusText(service.status)}
+                      color={getStatusColor(service.status)}
+                      size="small"
+                    />
+                  }
+                />
               ))}
-            </List>
+            </Box>
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            <List>
+            <Box sx={{ display: "grid", gap: 1.25 }}>
               {filteredServices.map((service) => (
-                <ListItem
+                <ListItemCard
                   key={service.id}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    mb: 1,
-                  }}
-                >
-                  <ListItemIcon>
-                    <Warning color="info" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={getServiceTypeText(service.type)}
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {service.vehicle} - {service.date}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          کیلومتر: {service.mileage} - هزینه: {service.cost}{" "}
-                          تومان
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {service.description}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <Chip
-                    label={getStatusText(service.status)}
-                    color={getStatusColor(service.status)}
-                    size="small"
-                  />
-                </ListItem>
+                  title={getServiceTypeText(service.type)}
+                  subtitle={`${service.vehicle} - ${service.date} | کیلومتر: ${service.mileage} - هزینه: ${service.cost} تومان`}
+                  icon={<Warning color="info" />}
+                  actions={
+                    <Chip
+                      label={getStatusText(service.status)}
+                      color={getStatusColor(service.status)}
+                      size="small"
+                    />
+                  }
+                />
               ))}
-            </List>
+            </Box>
           </TabPanel>
         </CardContent>
       </Card>

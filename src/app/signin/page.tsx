@@ -75,7 +75,7 @@ export default function Signin() {
     try {
       await login({ phone_number: phone, password });
       router.push("/dashboard");
-    } catch (error) {
+    } catch (_e) {
       // Error is handled by AuthContext
     }
   };

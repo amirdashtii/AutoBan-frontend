@@ -44,6 +44,7 @@ import ColorModeSelect from "@/theme/ColorModeSelect";
 import AccountActivation from "@/components/AccountActivation";
 import LogoutDialog from "@/components/LogoutDialog";
 import type { SelectChangeEvent } from "@mui/material/Select";
+// Top header removed per design
 
 export default function Profile() {
   const { user } = useAuth();
@@ -90,6 +91,7 @@ export default function Profile() {
 
   return (
     <Box sx={{ p: 2, pb: 8 }}>
+      {/* Top header removed per design */}
       {/* Account Activation for inactive users */}
       {user?.status === "Deactivated" && (
         <AccountActivation

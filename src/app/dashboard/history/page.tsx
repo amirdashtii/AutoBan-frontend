@@ -1,17 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Chip,
-} from "@mui/material";
+import { Box, Typography, Card, CardContent, Chip } from "@mui/material";
 import {
   Timeline,
   TimelineItem,
@@ -28,6 +18,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 import InactiveUserRestriction from "@/components/InactiveUserRestriction";
+// Top header removed per design
 
 export default function History() {
   const { user } = useAuth();
@@ -107,9 +98,7 @@ export default function History() {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h4" gutterBottom>
-        تاریخچه سرویس‌ها
-      </Typography>
+      {/* Top header removed per design */}
 
       {/* Account Activation Warning */}
       <InactiveUserRestriction />

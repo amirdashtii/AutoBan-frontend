@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Card, CardContent, Button } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import {
   DirectionsCar,
   Build,
@@ -11,6 +11,7 @@ import {
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import InactiveUserRestriction from "@/components/InactiveUserRestriction";
+import { ListItemCard } from "@/components/ui";
 
 export default function DashboardHome() {
   const router = useRouter();
@@ -57,14 +58,7 @@ export default function DashboardHome() {
 
   return (
     <Box sx={{ p: 2, pb: 10 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        داشبورد
-      </Typography>
-
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        به اتوبان خوش آمدید! از اینجا می‌توانید خودروها و سرویس‌هایتان را مدیریت
-        کنید.
-      </Typography>
+      {/* Top header removed per design */}
 
       {/* Account Activation Warning */}
       <InactiveUserRestriction />
@@ -77,34 +71,14 @@ export default function DashboardHome() {
         }}
       >
         {quickActions.map((action) => (
-          <Card
+          <ListItemCard
             key={action.title}
-            sx={{
-              cursor: "pointer",
-              transition: "transform 0.2s",
-              "&:hover": {
-                transform: "translateY(-2px)",
-              },
-            }}
-            onClick={() => router.push(action.path)}
-          >
-            <CardContent>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box
-                  sx={{
-                    color: `${action.color}.main`,
-                    mr: 2,
-                  }}
-                >
-                  {action.icon}
-                </Box>
-                <Typography variant="h6" component="h2">
-                  {action.title}
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {action.description}
-              </Typography>
+            title={action.title}
+            subtitle={action.description}
+            icon={
+              <Box sx={{ color: `${action.color}.main` }}>{action.icon}</Box>
+            }
+            actions={
               <Button
                 variant="outlined"
                 size="small"
@@ -113,8 +87,9 @@ export default function DashboardHome() {
               >
                 مدیریت
               </Button>
-            </CardContent>
-          </Card>
+            }
+            onClick={() => router.push(action.path)}
+          />
         ))}
       </Box>
     </Box>

@@ -7,17 +7,12 @@ import {
   Card,
   CardContent,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
   Fab,
-  Chip,
   Alert,
   CircularProgress,
   FormControl,
@@ -32,14 +27,7 @@ import {
   Snackbar,
   Alert as MuiAlert,
 } from "@mui/material";
-import {
-  DirectionsCar,
-  Add,
-  Edit,
-  Delete,
-  Refresh,
-  Info,
-} from "@mui/icons-material";
+import { DirectionsCar, Add, Edit, Delete, Refresh } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 import InactiveUserRestriction from "@/components/InactiveUserRestriction";
 import { VehicleService } from "@/services/vehicleService";
@@ -52,6 +40,12 @@ import {
   CreateUserVehicleRequest,
   UpdateUserVehicleRequest,
 } from "@/types/api";
+import {
+  SearchField,
+  ListItemCard,
+  EmptyState,
+  ConfirmDialog,
+} from "@/components/ui";
 
 export default function Vehicles() {
   const { user } = useAuth();
@@ -72,6 +66,7 @@ export default function Vehicles() {
     severity: "success" | "error";
   }>({ open: false, message: "", severity: "success" });
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState("");
 
   // Form states
   const [formData, setFormData] = useState<CreateUserVehicleRequest>({
@@ -428,18 +423,25 @@ export default function Vehicles() {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4">خودروهای من</Typography>
+      {/* Top header removed per design; quick actions moved inline below */}
+      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
         <Button startIcon={<Refresh />} onClick={loadData} variant="outlined">
           بروزرسانی
         </Button>
+        <Button
+          startIcon={<Add />}
+          onClick={handleAddVehicle}
+          variant="contained"
+        >
+          افزودن
+        </Button>
+      </Box>
+      <Box sx={{ mb: 2 }}>
+        <SearchField
+          placeholder="جستجوی نام/پلاک/رنگ"
+          value={query}
+          onChange={setQuery}
+        />
       </Box>
 
       {/* Account Activation Warning */}
@@ -451,72 +453,60 @@ export default function Vehicles() {
         </Alert>
       )}
 
-      {vehicles.length === 0 ? (
-        <Card>
-          <CardContent sx={{ textAlign: "center", py: 4 }}>
-            <DirectionsCar
-              sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
-            />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              هنوز خودرویی اضافه نکرده‌اید
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              برای شروع مدیریت خودروهای خود، اولین خودرو را اضافه کنید
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={handleAddVehicle}
-            >
-              افزودن اولین خودرو
-            </Button>
-          </CardContent>
-        </Card>
+      {vehicles.filter(Boolean).length === 0 ? (
+        <EmptyState
+          icon={<DirectionsCar sx={{ fontSize: 64 }} />}
+          title="هنوز خودرویی اضافه نکرده‌اید"
+          description="برای شروع مدیریت خودروهای خود، اولین خودرو را اضافه کنید"
+          actionLabel="افزودن اولین خودرو"
+          onAction={handleAddVehicle}
+        />
       ) : (
         <Card>
           <CardContent>
-            <List>
+            <Box sx={{ display: "grid", gap: 1.25 }}>
               {vehicles
-                .filter((vehicle) => vehicle && vehicle.id)
+                .filter((v) => v && v.id)
+                .filter((v) => {
+                  const q = query.trim();
+                  if (!q) return true;
+                  const name = getVehicleDisplayName(v).toLowerCase();
+                  const details = getVehicleDetails(v).toLowerCase();
+                  return (
+                    name.includes(q.toLowerCase()) ||
+                    details.includes(q.toLowerCase())
+                  );
+                })
                 .map((vehicle) => (
-                  <ListItem
+                  <ListItemCard
                     key={vehicle.id}
-                    sx={{
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <ListItemIcon>
-                      <DirectionsCar color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={getVehicleDisplayName(vehicle)}
-                      secondary={getVehicleDetails(vehicle)}
-                    />
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <Tooltip title="ویرایش">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEditVehicle(vehicle)}
-                        >
-                          <Edit />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="حذف">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteVehicle(vehicle.id)}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </ListItem>
+                    title={getVehicleDisplayName(vehicle)}
+                    subtitle={getVehicleDetails(vehicle)}
+                    icon={<DirectionsCar color="primary" />}
+                    actions={
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Tooltip title="ویرایش">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditVehicle(vehicle)}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="حذف">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteVehicle(vehicle.id)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    }
+                  />
                 ))}
-            </List>
+            </Box>
           </CardContent>
         </Card>
       )}
@@ -805,21 +795,15 @@ export default function Vehicles() {
       </Dialog>
 
       {/* Confirm Delete Dialog */}
-      <Dialog
+      <ConfirmDialog
         open={confirmDeleteId != null}
         onClose={() => setConfirmDeleteId(null)}
-      >
-        <DialogTitle>حذف خودرو</DialogTitle>
-        <DialogContent>
-          آیا از حذف این خودرو اطمینان دارید؟ این عملیات قابل بازگشت نیست.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDeleteId(null)}>انصراف</Button>
-          <Button color="error" variant="contained" onClick={confirmDelete}>
-            حذف
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={confirmDelete}
+        title="حذف خودرو"
+        content="آیا از حذف این خودرو اطمینان دارید؟ این عملیات قابل بازگشت نیست."
+        confirmLabel="حذف"
+        confirmColor="error"
+      />
 
       {/* Snackbar notifications */}
       <Snackbar

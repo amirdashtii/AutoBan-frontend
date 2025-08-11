@@ -1,12 +1,11 @@
 "use client";
 
 import React from "react";
-import { Box, CssBaseline } from "@mui/material";
 import BottomNavigationComponent, {
   NavigationTab,
 } from "@/components/layout/BottomNavigation";
+import { AppShell } from "@/components/layout";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
@@ -46,27 +45,12 @@ export default function DashboardLayout({
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        width: "100vw",
-        maxWidth: "100vw",
-        overflow: "hidden",
-        "& *": {
-          boxSizing: "border-box",
-        },
-      }}
-    >
-      {/* Main Content */}
-      <Box sx={{ flex: 1, width: "100%", maxWidth: "100%" }}>{children}</Box>
-
-      {/* Bottom Navigation */}
+    <AppShell>
+      {children}
       <BottomNavigationComponent
         currentTab={getCurrentTab()}
         onTabChange={handleTabChange}
       />
-    </Box>
+    </AppShell>
   );
 }
