@@ -1,16 +1,15 @@
 "use client";
 
-import React, { ReactNode, useCallback, useEffect, useReducer } from "react";
-import { LoginRequest, SignupRequest, User } from "@/types/api";
-import { AuthService } from "@/services/authService";
-import { apiRequest } from "@/utils/api";
+import React, { ReactNode, useCallback, useEffect } from "react";
+import { LoginRequest, SignupRequest } from "@/types/api";
 import { useRouter, usePathname } from "next/navigation";
+import { AuthContext, AuthContextType } from "./authUtils";
 import {
-  AuthContext,
-  AuthContextType,
-  authReducer,
-  initialState,
-} from "./authUtils";
+  useIsAuthenticated,
+  useLoginMutation,
+  useSignupMutation,
+  useLogoutMutation,
+} from "@/hooks/useAuthQuery";
 
 // Auth Provider Props
 interface AuthProviderProps {
@@ -19,125 +18,90 @@ interface AuthProviderProps {
 
 // Auth Provider Component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState);
   const router = useRouter();
   const pathname = usePathname();
 
-  // Initialize auth state
+  // Use React Query hooks for auth state
+  const { isAuthenticated, user, isLoading, error } = useIsAuthenticated();
+  const loginMutation = useLoginMutation();
+  const signupMutation = useSignupMutation();
+  const logoutMutation = useLogoutMutation();
+
+  // Handle authentication redirects
   useEffect(() => {
-    const initializeAuth = async () => {
-      // Ensure we're on the client side
-      if (typeof window === "undefined") {
-        return;
-      }
+    // Skip if still loading
+    if (isLoading) return;
 
-      const currentPath = window.location.pathname;
+    const currentPath = pathname;
+    const isPublicPage = ["/signin", "/signup", "/"].includes(currentPath);
+    const isProtectedPage = currentPath.startsWith("/dashboard");
 
-      // Don't check auth on public pages
-      if (
-        currentPath === "/signin" ||
-        currentPath === "/signup" ||
-        currentPath === "/"
-      ) {
-        // For public pages, only check if user has token and might be already logged in
-        const hasAuthToken = document.cookie.includes("auth-token=");
-
-        if (hasAuthToken) {
-          try {
-            // User has token, check if it's valid
-            const user = await apiRequest<User>("/users/me");
-            dispatch({ type: "AUTH_SUCCESS", payload: { user } });
-
-            // Redirect to dashboard if on public page but authenticated
-            if (
-              currentPath === "/signin" ||
-              currentPath === "/signup" ||
-              currentPath === "/"
-            ) {
-              router.replace("/dashboard");
-            }
-          } catch (error) {
-            // Token invalid, set to logout state
-            dispatch({ type: "AUTH_LOGOUT" });
-          }
-        } else {
-          // No token, set to logout state
-          dispatch({ type: "AUTH_LOGOUT" });
-        }
-        return;
-      }
-
-      // For protected pages, always check authentication
-      try {
-        const user = await apiRequest<User>("/users/me");
-        dispatch({ type: "AUTH_SUCCESS", payload: { user } });
-      } catch (error) {
-        // If auth fails completely (including refresh), user is not authenticated
-        dispatch({ type: "AUTH_LOGOUT" });
-        router.replace("/signin");
-      }
-    };
-
-    initializeAuth();
-  }, [router]);
-
-  // Login function
-  const login = useCallback(async (credentials: LoginRequest) => {
-    dispatch({ type: "AUTH_START" });
-    try {
-      const response = await AuthService.login(credentials);
-      // Get user data after successful login
-      const user = await AuthService.getCurrentUser();
-      dispatch({
-        type: "AUTH_SUCCESS",
-        payload: { user },
-      });
-      return response;
-    } catch (error) {
-      dispatch({ type: "AUTH_ERROR", payload: (error as Error).message });
-      throw error;
-    }
-  }, []);
-
-  // Signup function
-  const signup = useCallback(async (credentials: SignupRequest) => {
-    dispatch({ type: "AUTH_START" });
-    try {
-      const response = await AuthService.signup(credentials);
-      // Get user data after successful signup
-      const user = await AuthService.getCurrentUser();
-      dispatch({
-        type: "AUTH_SUCCESS",
-        payload: { user },
-      });
-      return response;
-    } catch (error) {
-      dispatch({ type: "AUTH_ERROR", payload: (error as Error).message });
-      throw error;
-    }
-  }, []);
-
-  // Logout function
-  const logout = useCallback(async () => {
-    try {
-      await AuthService.logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      dispatch({ type: "AUTH_LOGOUT" });
-      // Always redirect to signin after logout
+    if (isAuthenticated && isPublicPage) {
+      // Authenticated user on public page → redirect to dashboard
+      router.replace("/dashboard");
+    } else if (!isAuthenticated && isProtectedPage) {
+      // Unauthenticated user on protected page → redirect to signin
       router.replace("/signin");
     }
-  }, [router]);
+  }, [isAuthenticated, isLoading, pathname, router]);
+
+  // Login function with React Query
+  const login = useCallback(
+    async (credentials: LoginRequest) => {
+      try {
+        const response = await loginMutation.mutateAsync(credentials);
+        return response;
+      } catch (error) {
+        throw error;
+      }
+    },
+    [loginMutation]
+  );
+
+  // Signup function with React Query
+  const signup = useCallback(
+    async (credentials: SignupRequest) => {
+      try {
+        const response = await signupMutation.mutateAsync(credentials);
+        return response;
+      } catch (error) {
+        throw error;
+      }
+    },
+    [signupMutation]
+  );
+
+  // Logout function with React Query
+  const logout = useCallback(async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      router.replace("/signin");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still redirect even if logout fails
+      router.replace("/signin");
+    }
+  }, [logoutMutation, router]);
 
   // Clear error function
   const clearError = useCallback(() => {
-    dispatch({ type: "CLEAR_ERROR" });
-  }, []);
+    // Reset mutation errors
+    loginMutation.reset();
+    signupMutation.reset();
+    logoutMutation.reset();
+  }, [loginMutation, signupMutation, logoutMutation]);
 
   // Context value
   const value: AuthContextType = {
-    ...state,
+    user: user || null,
+    isAuthenticated,
+    isLoading: isLoading || loginMutation.isPending || signupMutation.isPending,
+    error:
+      error?.message ||
+      loginMutation.error?.message ||
+      signupMutation.error?.message ||
+      logoutMutation.error?.message ||
+      null,
     login,
     signup,
     logout,
