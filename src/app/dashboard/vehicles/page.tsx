@@ -1,18 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Fab,
   Alert,
   CircularProgress,
   FormControl,
@@ -20,14 +17,14 @@ import {
   Select,
   MenuItem,
   IconButton,
-  Tooltip,
   Stepper,
   Step,
   StepLabel,
   Snackbar,
   Alert as MuiAlert,
 } from "@mui/material";
-import { DirectionsCar, Add, Edit, Delete, Refresh } from "@mui/icons-material";
+import { DirectionsCar, Add } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import { useAuth } from "@/hooks/useAuth";
 import InactiveUserRestriction from "@/components/InactiveUserRestriction";
 import { VehicleService } from "@/services/vehicleService";
@@ -40,15 +37,13 @@ import {
   CreateUserVehicleRequest,
   UpdateUserVehicleRequest,
 } from "@/types/api";
-import {
-  SearchField,
-  ListItemCard,
-  EmptyState,
-  ConfirmDialog,
-} from "@/components/ui";
+import { SearchField, ListItemCard, EmptyState } from "@/components/ui";
+import { useRouter } from "next/navigation";
 
 export default function Vehicles() {
+  const theme = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
   const [vehicles, setVehicles] = useState<UserVehicle[]>([]);
   const [hierarchy, setHierarchy] = useState<CompleteVehicleHierarchy | null>(
     null
@@ -59,7 +54,6 @@ export default function Vehicles() {
   const [editingVehicle, setEditingVehicle] = useState<UserVehicle | null>(
     null
   );
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -67,6 +61,11 @@ export default function Vehicles() {
   }>({ open: false, message: "", severity: "success" });
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
+
+  // Pull-to-refresh state
+  const [isPulling, setIsPulling] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const startYRef = useRef<number | null>(null);
 
   // Form states
   const [formData, setFormData] = useState<CreateUserVehicleRequest>({
@@ -93,6 +92,37 @@ export default function Vehicles() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const atTop = window.scrollY === 0;
+    if (atTop) {
+      startYRef.current = e.touches[0].clientY;
+      setIsPulling(true);
+      setPullDistance(0);
+    } else {
+      startYRef.current = null;
+      setIsPulling(false);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isPulling || startYRef.current == null) return;
+    const delta = e.touches[0].clientY - startYRef.current;
+    if (delta > 0) {
+      setPullDistance(Math.min(delta, 100));
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (!isPulling) return;
+    const threshold = 60;
+    const shouldRefresh = pullDistance > threshold;
+    setIsPulling(false);
+    setPullDistance(0);
+    if (shouldRefresh) {
+      await loadData();
+    }
+  };
 
   // Auto-suggest vehicle name based on selected generation
   useEffect(() => {
@@ -152,76 +182,6 @@ export default function Vehicles() {
     setOpenDialog(true);
   };
 
-  const handleEditVehicle = (vehicle: UserVehicle) => {
-    setEditingVehicle(vehicle);
-    setFormData({
-      name: vehicle.name,
-      generation_id: vehicle.generation_id,
-      production_year: vehicle.production_year,
-      color: vehicle.color,
-      license_plate: vehicle.license_plate,
-      vin: vehicle.vin,
-      current_mileage: vehicle.current_mileage,
-      purchase_date: vehicle.purchase_date,
-    });
-    // Set the cascading selections based on the vehicle's generation
-    if (hierarchy) {
-      for (const type of hierarchy.vehicle_types) {
-        for (const brand of type.brands) {
-          for (const model of brand.models) {
-            const generation = model.generations.find(
-              (g) => g.id === vehicle.generation_id
-            );
-            if (generation) {
-              setSelectedType(type.id);
-              setSelectedBrand(brand.id);
-              setSelectedModel(model.id);
-              break;
-            }
-          }
-        }
-      }
-    }
-    setActiveStep(1); // Skip to details step for editing
-    setError(null);
-    setOpenDialog(true);
-  };
-
-  const handleDeleteVehicle = (vehicleId: number) => {
-    setConfirmDeleteId(vehicleId);
-  };
-
-  const confirmDelete = async () => {
-    if (confirmDeleteId == null) return;
-    const vehicleId = confirmDeleteId;
-
-    // Optimistic UI: remove locally first
-    const prevVehicles = vehicles;
-    setVehicles((list) => list.filter((v) => v.id !== vehicleId));
-    setConfirmDeleteId(null);
-    setError(null);
-
-    try {
-      await VehicleService.deleteUserVehicle(vehicleId);
-      setSnackbar({
-        open: true,
-        message: "خودرو با موفقیت حذف شد",
-        severity: "success",
-      });
-      // Optionally refresh from server to be safe
-      await loadData();
-    } catch (err: unknown) {
-      // rollback on failure
-      setVehicles(prevVehicles);
-      setSnackbar({
-        open: true,
-        message: "خطا در حذف خودرو. دوباره تلاش کنید",
-        severity: "error",
-      });
-      console.error("Error deleting vehicle:", err);
-    }
-  };
-
   const handleSubmit = async () => {
     console.log("📝 فرم داده‌ها:", formData);
 
@@ -237,18 +197,13 @@ export default function Vehicles() {
 
     try {
       setSaving(true);
-      // Build sanitized payload according to backend DTO expectations
       const submitData: Partial<UpdateUserVehicleRequest> = {};
-      // required-ish (for update are optional but we send if present)
       if (formData.name && formData.name.trim() !== "")
         submitData.name = formData.name.trim();
       if (formData.generation_id)
         submitData.generation_id = formData.generation_id;
       if (typeof formData.production_year === "number") {
-        let year = formData.production_year;
-        // If user entered Jalali year (e.g., 1401), convert approximately to Gregorian
-        if (year < 1700) year = year + 621;
-        submitData.production_year = year;
+        submitData.production_year = formData.production_year;
       }
       if (formData.color && formData.color.trim() !== "")
         submitData.color = formData.color.trim();
@@ -259,7 +214,6 @@ export default function Vehicles() {
       if (typeof formData.current_mileage === "number")
         submitData.current_mileage = formData.current_mileage;
       if (formData.purchase_date && formData.purchase_date.trim() !== "") {
-        // Ensure YYYY-MM-DD format (backend expects simple date)
         submitData.purchase_date = formData.purchase_date.slice(0, 10);
       }
 
@@ -268,7 +222,6 @@ export default function Vehicles() {
           editingVehicle.id,
           submitData as UpdateUserVehicleRequest
         );
-        // Reload the vehicles list to ensure data consistency
         await loadData();
         setSnackbar({
           open: true,
@@ -287,7 +240,6 @@ export default function Vehicles() {
           purchase_date: submitData.purchase_date || "",
         };
         await VehicleService.addUserVehicle(createPayload);
-        // Reload the vehicles list to ensure data consistency
         await loadData();
         setSnackbar({
           open: true,
@@ -315,12 +267,9 @@ export default function Vehicles() {
     if (!vehicle) {
       return "خودرو نامشخص";
     }
-
     if (vehicle.generation && vehicle.generation.name_fa) {
       return `${vehicle.generation.name_fa} - ${vehicle.name}`;
     }
-
-    // If generation is not available, try to find it from hierarchy
     if (hierarchy && vehicle.generation_id) {
       for (const type of hierarchy.vehicle_types) {
         for (const brand of type.brands) {
@@ -335,16 +284,12 @@ export default function Vehicles() {
         }
       }
     }
-
     return vehicle.name;
   };
 
   const getVehicleDetails = (vehicle: UserVehicle) => {
-    if (!vehicle) {
-      return "";
-    }
-
-    const details = [];
+    if (!vehicle) return "";
+    const details = [] as string[];
     if (vehicle.production_year)
       details.push(`سال: ${vehicle.production_year}`);
     if (vehicle.color) details.push(`رنگ: ${vehicle.color}`);
@@ -357,7 +302,7 @@ export default function Vehicles() {
           "fa-IR"
         );
         details.push(`تاریخ خرید: ${persianDate}`);
-      } catch (error) {
+      } catch (_e) {
         details.push(`تاریخ خرید: ${vehicle.purchase_date}`);
       }
     }
@@ -374,24 +319,18 @@ export default function Vehicles() {
     ) {
       return "";
     }
-
     const type = hierarchy.vehicle_types.find((t) => t.id === selectedType);
     const brand = type?.brands.find((b) => b.id === selectedBrand);
     const model = brand?.models.find((m) => m.id === selectedModel);
     const generation = model?.generations.find(
       (g) => g.id === formData.generation_id
     );
-
-    if (!type || !brand || !model || !generation) {
-      return "";
-    }
-
+    if (!type || !brand || !model || !generation) return "";
     return `${type.name_fa} > ${brand.name_fa} > ${model.name_fa} > ${generation.name_fa}`;
   };
 
   const handleNext = () => {
     if (activeStep === 0) {
-      // Validate vehicle selection
       if (!formData.generation_id) {
         setError("لطفاً نوع خودرو، برند، مدل و نسخه را انتخاب کنید");
         return;
@@ -422,20 +361,59 @@ export default function Vehicles() {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      {/* Top header removed per design; quick actions moved inline below */}
-      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-        <Button startIcon={<Refresh />} onClick={loadData} variant="outlined">
-          بروزرسانی
-        </Button>
-        <Button
-          startIcon={<Add />}
-          onClick={handleAddVehicle}
-          variant="contained"
-        >
-          افزودن
-        </Button>
+    <Box
+      sx={{ p: 2, touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Pull to refresh indicator */}
+      <Box
+        sx={{
+          height: isPulling ? pullDistance : 0,
+          transition: "height 0.15s",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "text.secondary",
+        }}
+      >
+        {isPulling && (
+          <Typography variant="body2">
+            {pullDistance > 60
+              ? "رها کنید برای بروزرسانی"
+              : "برای بروزرسانی صفحه را به پایین بکشید"}
+          </Typography>
+        )}
       </Box>
+
+      {/* Title centered with add button aligned to right */}
+      <Box
+        sx={{
+          position: "relative",
+          mb: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography variant="h5" fontWeight={700} textAlign="center">
+          خودروها
+        </Typography>
+        <IconButton
+          color="primary"
+          aria-label="افزودن خودرو"
+          onClick={handleAddVehicle}
+          sx={(t) => ({
+            position: "absolute",
+            [t.direction === "rtl" ? "left" : "right"]: 0,
+          })}
+        >
+          <Add />
+        </IconButton>
+      </Box>
+
+      {/* Search */}
       <Box sx={{ mb: 2 }}>
         <SearchField
           placeholder="جستجوی نام/پلاک/رنگ"
@@ -458,57 +436,33 @@ export default function Vehicles() {
           icon={<DirectionsCar sx={{ fontSize: 64 }} />}
           title="هنوز خودرویی اضافه نکرده‌اید"
           description="برای شروع مدیریت خودروهای خود، اولین خودرو را اضافه کنید"
-          actionLabel="افزودن اولین خودرو"
+          actionLabel="افزودن خودرو"
           onAction={handleAddVehicle}
         />
       ) : (
-        <Card>
-          <CardContent>
-            <Box sx={{ display: "grid", gap: 1.25 }}>
+        <Box sx={{ display: "grid", gap: 1 }}>
               {vehicles
-                .filter((v) => v && v.id)
-                .filter((v) => {
-                  const q = query.trim();
-                  if (!q) return true;
-                  const name = getVehicleDisplayName(v).toLowerCase();
-                  const details = getVehicleDetails(v).toLowerCase();
-                  return (
-                    name.includes(q.toLowerCase()) ||
-                    details.includes(q.toLowerCase())
-                  );
-                })
+            .filter((v) => v && v.id)
+            .filter((v) => {
+              const q = query.trim();
+              if (!q) return true;
+              const name = getVehicleDisplayName(v).toLowerCase();
+              const details = getVehicleDetails(v).toLowerCase();
+              return (
+                name.includes(q.toLowerCase()) ||
+                details.includes(q.toLowerCase())
+              );
+            })
                 .map((vehicle) => (
-                  <ListItemCard
+              <ListItemCard
                     key={vehicle.id}
-                    title={getVehicleDisplayName(vehicle)}
-                    subtitle={getVehicleDetails(vehicle)}
-                    icon={<DirectionsCar color="primary" />}
-                    actions={
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <Tooltip title="ویرایش">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditVehicle(vehicle)}
-                          >
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="حذف">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteVehicle(vehicle.id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    }
-                  />
-                ))}
-            </Box>
-          </CardContent>
-        </Card>
+                title={getVehicleDisplayName(vehicle)}
+                subtitle={getVehicleDetails(vehicle)}
+                icon={<DirectionsCar color="primary" />}
+                onClick={() => router.push(`/dashboard/vehicles/${vehicle.id}`)}
+              />
+            ))}
+                    </Box>
       )}
 
       {/* Add/Edit Vehicle Dialog */}
@@ -757,11 +711,7 @@ export default function Vehicles() {
                             : "",
                         })
                       }
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                        },
-                      }}
+                      slotProps={{ textField: { fullWidth: true } }}
                     />
                   </LocalizationProvider>
                 </Box>
@@ -794,17 +744,6 @@ export default function Vehicles() {
         </DialogActions>
       </Dialog>
 
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        open={confirmDeleteId != null}
-        onClose={() => setConfirmDeleteId(null)}
-        onConfirm={confirmDelete}
-        title="حذف خودرو"
-        content="آیا از حذف این خودرو اطمینان دارید؟ این عملیات قابل بازگشت نیست."
-        confirmLabel="حذف"
-        confirmColor="error"
-      />
-
       {/* Snackbar notifications */}
       <Snackbar
         open={snackbar.open}
@@ -822,18 +761,6 @@ export default function Vehicles() {
           {snackbar.message}
         </MuiAlert>
       </Snackbar>
-
-      {/* Floating Action Button */}
-      {vehicles.length > 0 && (
-        <Fab
-          color="primary"
-          aria-label="add vehicle"
-          sx={{ position: "fixed", bottom: 80, right: 16 }}
-          onClick={handleAddVehicle}
-        >
-          <Add />
-        </Fab>
-      )}
     </Box>
   );
 }

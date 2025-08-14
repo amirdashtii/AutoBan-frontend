@@ -17,10 +17,10 @@ export default function DashboardLayout({
 
   const getCurrentTab = (): NavigationTab => {
     if (pathname === "/dashboard") return "home";
-    if (pathname === "/dashboard/vehicles") return "vehicles";
-    if (pathname === "/dashboard/services") return "services";
-    if (pathname === "/dashboard/history") return "history";
-    if (pathname === "/dashboard/profile") return "profile";
+    if (pathname.startsWith("/dashboard/vehicles")) return "vehicles";
+    if (pathname.startsWith("/dashboard/services")) return "services";
+    if (pathname.startsWith("/dashboard/history")) return "history";
+    if (pathname.startsWith("/dashboard/profile")) return "profile";
     return "home";
   };
 
