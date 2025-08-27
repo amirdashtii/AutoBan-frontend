@@ -5,7 +5,7 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from "@mui/material";
-import { useColorScheme } from "@mui/material/styles";
+import { useColorScheme } from "./AppTheme";
 import {
   Brightness4,
   Brightness7,

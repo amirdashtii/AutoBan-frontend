@@ -21,22 +21,72 @@ const cacheRtl = createCache({
   stylisPlugins: [prefixer, rtlPlugin],
 });
 
+// Context برای مدیریت تم
+const ThemeModeContext = React.createContext<{
+  mode: "light" | "dark" | "system";
+  setMode: (mode: "light" | "dark" | "system") => void;
+  effectiveMode: "light" | "dark";
+}>({
+  mode: "system",
+  setMode: () => {},
+  effectiveMode: "light",
+});
+
+export const useColorScheme = () => React.useContext(ThemeModeContext);
+
 export default function AppTheme(props: AppThemeProps) {
   const { children, disableCustomTheme, themeComponents } = props;
-  const [mode, setMode] = React.useState<"light" | "dark">("light");
 
+  // State برای مدیریت تم
+  const [mode, setModeState] = React.useState<"light" | "dark" | "system">(
+    "system"
+  );
+  const [systemMode, setSystemMode] = React.useState<"light" | "dark">("light");
+
+  // بررسی تنظیمات سیستم
   React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setMode(mediaQuery.matches ? "dark" : "light");
-    const handleChange = (e: MediaQueryListEvent) =>
-      setMode(e.matches ? "dark" : "light");
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    if (typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      setSystemMode(mediaQuery.matches ? "dark" : "light");
+
+      const handleChange = (e: MediaQueryListEvent) => {
+        setSystemMode(e.matches ? "dark" : "light");
+      };
+
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
   }, []);
+
+  // بارگذاری تنظیمات ذخیره شده
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedMode = localStorage.getItem("theme-mode") as
+        | "light"
+        | "dark"
+        | "system"
+        | null;
+      if (savedMode && ["light", "dark", "system"].includes(savedMode)) {
+        setModeState(savedMode);
+      }
+    }
+  }, []);
+
+  // ذخیره تنظیمات
+  const setMode = React.useCallback((newMode: "light" | "dark" | "system") => {
+    setModeState(newMode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme-mode", newMode);
+    }
+  }, []);
+
+  // محاسبه تم موثر
+  const effectiveMode = mode === "system" ? systemMode : mode;
 
   const theme = React.useMemo(() => {
     if (disableCustomTheme) return createTheme();
-    const tokens = getDesignTokens(mode);
+
+    const tokens = getDesignTokens(effectiveMode);
     return createTheme({
       direction: "rtl",
       ...tokens,
@@ -61,16 +111,18 @@ export default function AppTheme(props: AppThemeProps) {
         ...themeComponents,
       },
     });
-  }, [mode, disableCustomTheme, themeComponents]);
+  }, [effectiveMode, disableCustomTheme, themeComponents]);
 
   if (disableCustomTheme) return <React.Fragment>{children}</React.Fragment>;
 
   return (
-    <CacheProvider value={cacheRtl}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </CacheProvider>
+    <ThemeModeContext.Provider value={{ mode, setMode, effectiveMode }}>
+      <CacheProvider value={cacheRtl}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          {children}
+        </ThemeProvider>
+      </CacheProvider>
+    </ThemeModeContext.Provider>
   );
 }

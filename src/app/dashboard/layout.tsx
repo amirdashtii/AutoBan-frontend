@@ -18,8 +18,6 @@ export default function DashboardLayout({
   const getCurrentTab = (): NavigationTab => {
     if (pathname === "/dashboard") return "home";
     if (pathname.startsWith("/dashboard/vehicles")) return "vehicles";
-    if (pathname.startsWith("/dashboard/services")) return "services";
-    if (pathname.startsWith("/dashboard/history")) return "history";
     if (pathname.startsWith("/dashboard/profile")) return "profile";
     return "home";
   };
@@ -31,12 +29,6 @@ export default function DashboardLayout({
         break;
       case "vehicles":
         router.push("/dashboard/vehicles");
-        break;
-      case "services":
-        router.push("/dashboard/services");
-        break;
-      case "history":
-        router.push("/dashboard/history");
         break;
       case "profile":
         router.push("/dashboard/profile");

@@ -8,9 +8,7 @@ import {
 import {
   Home as HomeIcon,
   DirectionsCar as VehicleIcon,
-  Build as ServiceIcon,
   Person as ProfileIcon,
-  History as HistoryIcon,
 } from "@mui/icons-material";
 
 const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
@@ -29,12 +27,7 @@ const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
   },
 }));
 
-export type NavigationTab =
-  | "home"
-  | "vehicles"
-  | "services"
-  | "history"
-  | "profile";
+export type NavigationTab = "home" | "vehicles" | "profile";
 
 interface BottomNavigationProps {
   currentTab: NavigationTab;
@@ -64,21 +57,15 @@ export default function BottomNavigationComponent({
         onChange={(_, newValue) => onTabChange(newValue)}
         showLabels
       >
-        <BottomNavigationAction label="خانه" value="home" icon={<HomeIcon />} />
+        <BottomNavigationAction
+          label="داشبورد"
+          value="home"
+          icon={<HomeIcon />}
+        />
         <BottomNavigationAction
           label="خودروها"
           value="vehicles"
           icon={<VehicleIcon />}
-        />
-        <BottomNavigationAction
-          label="سرویس"
-          value="services"
-          icon={<ServiceIcon />}
-        />
-        <BottomNavigationAction
-          label="تاریخچه"
-          value="history"
-          icon={<HistoryIcon />}
         />
         <BottomNavigationAction
           label="پروفایل"

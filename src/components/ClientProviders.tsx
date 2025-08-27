@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import dynamic from "next/dynamic";
 
 // Dynamically import performance components
@@ -40,13 +42,16 @@ export default function ClientProviders({
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <DataPrefetcher />
-        <PerformanceMonitor />
-        {children}
-      </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ToastProvider />
+          <DataPrefetcher />
+          <PerformanceMonitor />
+          {children}
+        </AuthProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
