@@ -9,6 +9,7 @@ import {
   IconButton,
   Avatar,
   Badge,
+  Button,
   useTheme,
   alpha,
   Slide,
@@ -16,6 +17,7 @@ import {
 } from "@mui/material";
 import {
   ArrowBack as BackIcon,
+  ChevronRight as ChevronRightIcon,
   Search as SearchIcon,
   MoreVert as MoreIcon,
   Menu as MenuIcon,
@@ -65,12 +67,23 @@ export const Header: React.FC<HeaderProps> = ({
         color: "text.primary",
       }}
     >
-      <Toolbar sx={{ px: 1 }}>
+      <Toolbar sx={{ justifyContent: "space-between" }}>
         {/* Back Button */}
         {showBack && (
-          <IconButton edge="start" onClick={handleBackClick} sx={{ mr: 1 }}>
-            <BackIcon />
-          </IconButton>
+          <Button
+            onClick={handleBackClick}
+            variant="text"
+            color="primary"
+            sx={{
+              minWidth: "auto",
+              px: 1,
+              py: 0.5,
+              fontSize: "0.875rem",
+            }}
+          >
+            <ChevronRightIcon fontSize="large" />
+            بازگشت
+          </Button>
         )}
 
         {/* Avatar */}
@@ -81,7 +94,16 @@ export const Header: React.FC<HeaderProps> = ({
         )}
 
         {/* Title Section */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box
+          sx={{
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+            textAlign: "center",
+            minWidth: 0,
+            maxWidth: "60%",
+          }}
+        >
           <Typography
             variant="h6"
             sx={{
@@ -111,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </Box>
 
-        {/* Actions */}
+        {/* Actions and Back Button */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
           {actions.map((action, index) => (
             <React.Fragment key={index}>{action}</React.Fragment>

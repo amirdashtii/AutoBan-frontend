@@ -1,119 +1,189 @@
-import { apiRequest, HTTP_METHODS } from "@/utils/api";
-import {
-  CompleteVehicleHierarchy,
-  CreateUserVehicleRequest,
-  UpdateUserVehicleRequest,
-  ListUserVehiclesResponse,
-  UserVehicleResponse,
-  UserVehicle,
-} from "@/types/api";
+import { apiClient } from "./apiClient";
 
-// Vehicle Service
-export class VehicleService {
-  // Get complete vehicle hierarchy
-  static async getVehicleHierarchy(): Promise<CompleteVehicleHierarchy> {
-    const response = await apiRequest<CompleteVehicleHierarchy>(
-      "/vehicles/hierarchy",
-      {
-        method: HTTP_METHODS.GET,
-      }
+export interface VehicleType {
+  id: number;
+  name_fa: string;
+  name_en: string;
+  description_fa?: string;
+  description_en?: string;
+}
+
+export interface VehicleBrand {
+  id: number;
+  vehicle_type_id: number;
+  name_fa: string;
+  name_en: string;
+  description_fa?: string;
+  description_en?: string;
+}
+
+export interface VehicleModel {
+  id: number;
+  brand_id: number;
+  name_fa: string;
+  name_en: string;
+  description_fa?: string;
+  description_en?: string;
+}
+
+export interface VehicleGeneration {
+  id: number;
+  model_id: number;
+  name_fa: string;
+  name_en: string;
+  start_year: number;
+  end_year: number;
+  body_style_fa: string;
+  body_style_en: string;
+  engine: string;
+  engine_volume: number;
+  cylinders: number;
+  drivetrain_fa: string;
+  drivetrain_en: string;
+  gearbox: string;
+  fuel_type: string;
+  battery?: string;
+  seller?: string;
+  assembly_type?: string;
+  assembler?: string;
+}
+
+export interface VehicleHierarchy {
+  vehicle_types: VehicleTypeTree[];
+  total_types: number;
+  total_brands: number;
+  total_models: number;
+  total_generations: number;
+}
+
+export interface VehicleTypeTree {
+  id: number;
+  name_fa: string;
+  name_en: string;
+  brands: VehicleBrandTree[];
+}
+
+export interface VehicleBrandTree {
+  id: number;
+  name_fa: string;
+  name_en: string;
+  models: VehicleModelTree[];
+}
+
+export interface VehicleModelTree {
+  id: number;
+  name_fa: string;
+  name_en: string;
+  generations: VehicleGenerationTree[];
+}
+
+export interface VehicleGenerationTree {
+  id: number;
+  name_fa: string;
+  name_en: string;
+}
+
+export interface CreateUserVehicleRequest {
+  name: string;
+  generation_id: number;
+  production_year?: number;
+  color?: string;
+  license_plate?: string;
+  vin?: string;
+  current_mileage?: number;
+  purchase_date?: string;
+}
+
+export interface UserVehicleResponse {
+  id: number;
+  user_id: string;
+  name: string;
+  generation_id: number;
+  production_year?: number;
+  color?: string;
+  license_plate?: string;
+  vin?: string;
+  current_mileage?: number;
+  purchase_date: string;
+  type?: VehicleType;
+  brand?: VehicleBrand;
+  model?: VehicleModel;
+  generation?: VehicleGeneration;
+}
+
+export const vehicleService = {
+  // دریافت hierarchy کامل
+  async getCompleteHierarchy(): Promise<VehicleHierarchy> {
+    const response = await apiClient.get("/vehicles/hierarchy");
+    return response.data;
+  },
+
+  // دریافت انواع خودرو
+  async getVehicleTypes(): Promise<VehicleType[]> {
+    const response = await apiClient.get("/vehicles/types");
+    return response.data.types;
+  },
+
+  // دریافت برندها بر اساس نوع
+  async getBrandsByType(typeId: number): Promise<VehicleBrand[]> {
+    const response = await apiClient.get(`/vehicles/types/${typeId}/brands`);
+    return response.data.brands;
+  },
+
+  // دریافت مدل‌ها بر اساس برند
+  async getModelsByBrand(
+    typeId: number,
+    brandId: number
+  ): Promise<VehicleModel[]> {
+    const response = await apiClient.get(
+      `/vehicles/types/${typeId}/brands/${brandId}/models`
     );
-    return response;
-  }
+    return response.data.models;
+  },
 
-  // Get user vehicles
-  static async getUserVehicles(): Promise<ListUserVehiclesResponse> {
-    const response = await apiRequest<ListUserVehiclesResponse>(
-      "/user/vehicles",
-      {
-        method: HTTP_METHODS.GET,
-      }
+  // دریافت نسل‌ها بر اساس مدل
+  async getGenerationsByModel(
+    typeId: number,
+    brandId: number,
+    modelId: number
+  ): Promise<VehicleGeneration[]> {
+    const response = await apiClient.get(
+      `/vehicles/types/${typeId}/brands/${brandId}/models/${modelId}/generations`
     );
-    return response;
-  }
+    return response.data.generations;
+  },
 
-  // Get specific user vehicle
-  static async getUserVehicle(vehicleId: number): Promise<UserVehicleResponse> {
-    try {
-      const response = await apiRequest<
-        UserVehicleResponse | UserVehicle | Record<string, unknown> | null
-      >(`/user/vehicles/${vehicleId}`, {
-        method: HTTP_METHODS.GET,
-      });
-
-      if (!response) {
-        throw new Error("Empty response");
-      }
-
-      console.log(response);
-      // Exact expected shape
-      if ((response as UserVehicleResponse).vehicle) {
-        return response as UserVehicleResponse;
-      }
-
-      // ApiResponse-like wrappers
-      const maybe = response as Record<string, unknown>;
-      const dataUnknown = (maybe as { data?: unknown }).data;
-      if (dataUnknown && typeof dataUnknown === "object") {
-        const dataObj = dataUnknown as Record<string, unknown>;
-        if (
-          "vehicle" in dataObj &&
-          dataObj.vehicle &&
-          typeof dataObj.vehicle === "object"
-        ) {
-          return { vehicle: dataObj.vehicle as UserVehicle };
-        }
-        if ("id" in dataObj) {
-          return { vehicle: dataObj as unknown as UserVehicle };
-        }
-      }
-
-      // Raw vehicle
-      const raw = response as UserVehicle;
-      if (raw && typeof raw === "object" && "id" in raw) {
-        return { vehicle: raw };
-      }
-
-      throw new Error("Unexpected response shape");
-    } catch (_err) {
-      // Fallback: fetch list and find locally
-      const list = await this.getUserVehicles();
-      const found = list.vehicles.find((v) => v.id === vehicleId);
-      if (!found) throw _err;
-      return { vehicle: found };
-    }
-  }
-
-  // Add new user vehicle
-  static async addUserVehicle(
+  // افزودن خودرو جدید
+  async createUserVehicle(
     data: CreateUserVehicleRequest
   ): Promise<UserVehicleResponse> {
-    const response = await apiRequest<UserVehicleResponse>("/user/vehicles", {
-      method: HTTP_METHODS.POST,
-      body: JSON.stringify(data),
-    });
-    return response;
-  }
+    const response = await apiClient.post("/user/vehicles", data);
+    return response.data;
+  },
 
-  // Update user vehicle
-  static async updateUserVehicle(
+  // دریافت لیست خودروهای کاربر
+  async getUserVehicles(): Promise<UserVehicleResponse[]> {
+    const response = await apiClient.get("/user/vehicles");
+    return response.data.vehicles;
+  },
+
+  // دریافت جزئیات خودرو
+  async getUserVehicle(vehicleId: number): Promise<UserVehicleResponse> {
+    const response = await apiClient.get(`/user/vehicles/${vehicleId}`);
+    return response.data;
+  },
+
+  // ویرایش خودرو
+  async updateUserVehicle(
     vehicleId: number,
-    data: UpdateUserVehicleRequest
+    data: Partial<CreateUserVehicleRequest>
   ): Promise<UserVehicleResponse> {
-    const response = await apiRequest<UserVehicleResponse>(
-      `/user/vehicles/${vehicleId}`,
-      {
-        method: HTTP_METHODS.PUT,
-        body: JSON.stringify(data),
-      }
-    );
-    return response;
-  }
+    const response = await apiClient.put(`/user/vehicles/${vehicleId}`, data);
+    return response.data;
+  },
 
-  // Delete user vehicle
-  static async deleteUserVehicle(vehicleId: number): Promise<void> {
-    await apiRequest<void>(`/user/vehicles/${vehicleId}`, {
-      method: HTTP_METHODS.DELETE,
-    });
-  }
-}
+  // حذف خودرو
+  async deleteUserVehicle(vehicleId: number): Promise<void> {
+    await apiClient.delete(`/user/vehicles/${vehicleId}`);
+  },
+};

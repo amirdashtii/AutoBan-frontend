@@ -23,9 +23,6 @@ export default function AppShell({ children }: AppShellProps) {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          pt: 2,
-          pb: { xs: 8, md: 2 },
-          px: { xs: 1.5, md: 3 },
         }}
       >
         {children}

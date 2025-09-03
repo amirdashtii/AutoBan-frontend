@@ -12,9 +12,7 @@ export interface IranLicensePlateProps {
 function parseCarPlate(value: string | undefined) {
   if (!value) return null;
   const src = toEnglishDigits(value);
-  const match = src.match(
-    /(\d{1,2})\s*([\u0600-\u06FF].*)\s*(\d{3})\s*-?\s*(\d{2})/
-  );
+  const match = src.match(/(\d{2})-([\u0600-\u06FF].*)-(\d{3})-(\d{2})/);
   if (!match) return null;
   const [, left2, letter, mid3, code2] = match;
   return { left2, letter, mid3, code2 } as const;
@@ -258,11 +256,57 @@ const IranLicensePlate: React.FC<IranLicensePlateProps> = ({
     >
       <LeftBlueBand basis={"8%"} />
 
-      <MidCodeBand
-        basis={"70%"}
-        code={parsed ? parsed.mid3 + parsed.letter + parsed.left2 : "-- - ---"}
-        color={color as string}
-      />
+      <Box
+        sx={{
+          flex: "1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          px: "1cqw",
+        }}
+      >
+        {/* سه رقم سمت راست */}
+        <Typography
+          sx={{
+            fontSize: "16cqw",
+            fontWeight: 900,
+            lineHeight: 1,
+            color: color as string,
+            flex: 1,
+            textAlign: "center",
+          }}
+        >
+          {parsed ? toPersianDigits(parsed.mid3) : "---"}
+        </Typography>
+
+        {/* حرف */}
+        <Typography
+          sx={{
+            fontSize: "16cqw",
+            fontWeight: 900,
+            lineHeight: 1,
+            color: color as string,
+            flex: 1,
+            textAlign: "center",
+          }}
+        >
+          {parsed ? parsed.letter : "-"}
+        </Typography>
+
+        {/* دو رقم سمت چپ */}
+        <Typography
+          sx={{
+            fontSize: "16cqw",
+            fontWeight: 900,
+            lineHeight: 1,
+            color: color as string,
+            flex: 1,
+            textAlign: "center",
+          }}
+        >
+          {parsed ? toPersianDigits(parsed.left2) : "--"}
+        </Typography>
+      </Box>
 
       <RightCodeBand
         basis={"22%"}

@@ -42,13 +42,60 @@ import { IranLicensePlate } from "@/components/ui";
 const mockVehicle = {
   id: 1,
   name: "پژو 206",
-  model: "پژو 206 صندوقدار",
-  brand: "پژو",
-  year: 1399,
-  plate: "12 ج 345 98",
-  mileage: 85000,
+  user_id: "user123",
+  license_plate: "12 ج 345 98",
+  current_mileage: 85000,
   color: "نقره‌ای",
-  vin: "NAAPZ12345678900",
+  production_year: 1399,
+  purchase_date: "1399/05/12",
+  vin: "NMT206123456789",
+  generation_id: 1,
+  brand: {
+    id: 1,
+    name_fa: "پژو",
+    name_en: "Peugeot",
+    description_fa: "خودروسازی پژو",
+    description_en: "Peugeot Automotive",
+    vehicle_type_id: 1,
+  },
+  model: {
+    id: 1,
+    brand_id: 1,
+    name_fa: "206",
+    name_en: "206",
+    description_fa: "پژو 206 صندوقدار",
+    description_en: "Peugeot 206 Sedan",
+  },
+  generation: {
+    id: 1,
+    model_id: 1,
+    name_fa: "206 صندوقدار",
+    name_en: "206 Sedan",
+    description_fa: "نسل اول پژو 206 صندوقدار",
+    description_en: "First generation Peugeot 206 Sedan",
+    start_year: 1385,
+    end_year: 1405,
+    engine: "TU3JP",
+    engine_volume: 1600,
+    cylinders: 4,
+    fuel_type: "بنزین",
+    gearbox: "دستی",
+    drivetrain_fa: "جلو",
+    drivetrain_en: "FWD",
+    body_style_fa: "صندوقدار",
+    body_style_en: "Sedan",
+    assembler: "ایران خودرو",
+    assembly_type: "CKD",
+    seller: "ایران خودرو",
+    battery: "12V",
+  },
+  type: {
+    id: 1,
+    name_fa: "سواری",
+    name_en: "Passenger",
+    description_fa: "خودروی سواری",
+    description_en: "Passenger Car",
+  },
   services: [
     {
       id: 1,
@@ -80,7 +127,7 @@ export default function VehicleDetails() {
       header={
         <Header
           title={vehicle.name}
-          subtitle={`${vehicle.brand} ${vehicle.model} - ${vehicle.year}`}
+          subtitle={`${vehicle.brand.name_fa} ${vehicle.model.name_fa} - ${vehicle.production_year}`}
           showBack
           onBackClick={() => router.back()}
           actions={[
@@ -124,7 +171,8 @@ export default function VehicleDetails() {
                     {vehicle.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {vehicle.brand} {vehicle.model} - سال {vehicle.year}
+                    {vehicle.brand.name_fa} {vehicle.model.name_fa} - سال{" "}
+                    {vehicle.production_year}
                   </Typography>
                 </Box>
                 <Chip
@@ -137,18 +185,58 @@ export default function VehicleDetails() {
               <Divider sx={{ my: 2 }} />
 
               <Grid container spacing={2}>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="body2" color="text.secondary">
                     پلاک خودرو
                   </Typography>
-                  <IranLicensePlate value={vehicle.plate} />
+                  <IranLicensePlate value={vehicle.license_plate} />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Typography variant="body2" color="text.secondary">
                     کیلومتر فعلی
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.mileage.toLocaleString()} کیلومتر
+                    {vehicle.current_mileage.toLocaleString()} کم
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    سال تولید
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {vehicle.production_year}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    موتور
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {vehicle.generation.engine_volume}cc
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    سوخت
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {vehicle.generation.fuel_type}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    گیربکس
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {vehicle.generation.gearbox}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    سازنده
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {vehicle.generation.assembler}
                   </Typography>
                 </Grid>
               </Grid>
