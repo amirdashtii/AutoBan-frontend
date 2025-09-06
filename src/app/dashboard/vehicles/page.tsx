@@ -1,53 +1,31 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Box,
-  Button,
   Tabs,
   Tab,
   Badge,
-  Chip,
   IconButton,
-  Menu,
-  MenuItem,
-  FormControl,
-  Select,
-  InputLabel,
-  Divider,
   Typography,
+  CircularProgress,
   Card,
   CardContent,
+  Chip,
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Autocomplete,
-  Switch,
-  FormControlLabel,
-  Alert,
+  Button,
 } from "@mui/material";
 import {
   DirectionsCar,
-  Add,
   Build,
   Schedule,
-  Search,
-  FilterList,
-  Sort,
-  MoreVert,
-  Visibility,
-  Edit,
+  ArrowDownward,
   Delete,
-  Share,
-  PictureAsPdf,
-  Refresh,
-  Warning,
-  CheckCircle,
-  TrendingUp,
-  Speed,
-  LocalGasStation,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,190 +33,13 @@ import InactiveUserRestriction from "@/components/InactiveUserRestriction";
 import {
   AppContainer,
   Header,
-  SearchHeader,
   ResponsiveContainer,
-  ResponsiveGrid,
-  ListItem,
-  SectionHeader,
-  FloatingButton,
-  SlideIn,
   StaggeredList,
-  StatusCard,
+  ListItem,
+  AddButton,
 } from "@/components/ui";
 import { useResponsive } from "@/components/ui/ResponsiveContainer";
-
-// Mock data - در واقعیت از API می‌آید
-const mockVehicles = [
-  {
-    id: 1,
-    name: "پژو 206",
-    user_id: "user123",
-    license_plate: "12 ج 345 98",
-    current_mileage: 85000,
-    color: "نقره‌ای",
-    production_year: 1399,
-    purchase_date: "1399/05/12",
-    vin: "NMT206123456789",
-    generation_id: 1,
-    brand: {
-      id: 1,
-      name_fa: "پژو",
-      name_en: "Peugeot",
-      description_fa: "خودروسازی پژو",
-      description_en: "Peugeot Automotive",
-      vehicle_type_id: 1,
-    },
-    model: {
-      id: 1,
-      brand_id: 1,
-      name_fa: "206",
-      name_en: "206",
-      description_fa: "پژو 206 صندوقدار",
-      description_en: "Peugeot 206 Sedan",
-    },
-    generation: {
-      id: 1,
-      model_id: 1,
-      name_fa: "206 صندوقدار",
-      name_en: "206 Sedan",
-      description_fa: "نسل اول پژو 206 صندوقدار",
-      description_en: "First generation Peugeot 206 Sedan",
-      start_year: 1385,
-      end_year: 1405,
-      engine: "TU3JP",
-      engine_volume: 1600,
-      cylinders: 4,
-      fuel_type: "بنزین",
-      gearbox: "دستی",
-      drivetrain_fa: "جلو",
-      drivetrain_en: "FWD",
-      body_style_fa: "صندوقدار",
-      body_style_en: "Sedan",
-      assembler: "ایران خودرو",
-      assembly_type: "CKD",
-      seller: "ایران خودرو",
-      battery: "12V",
-    },
-    type: {
-      id: 1,
-      name_fa: "سواری",
-      name_en: "Passenger",
-      description_fa: "خودروی سواری",
-      description_en: "Passenger Car",
-    },
-    // اطلاعات اضافی برای نمایش
-    status: "active",
-    lastService: "1403/09/15",
-    nextService: 90000,
-    services: [
-      {
-        id: 1,
-        type: "تعویض روغن",
-        date: "1403/09/15",
-        mileage: 83000,
-        status: "completed",
-        nextDue: 90000,
-        cost: 450000,
-        urgent: false,
-      },
-      {
-        id: 2,
-        type: "تعویض فیلتر هوا",
-        date: "1403/09/20",
-        mileage: 84000,
-        status: "pending",
-        nextDue: 88000,
-        cost: 200000,
-        urgent: true,
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "پراید 131",
-    user_id: "user123",
-    license_plate: "56 د 789 98",
-    current_mileage: 120000,
-    color: "سفید",
-    production_year: 1395,
-    purchase_date: "1395/03/20",
-    vin: "SAIPA131987654321",
-    generation_id: 2,
-    brand: {
-      id: 2,
-      name_fa: "پراید",
-      name_en: "Pride",
-      description_fa: "خودروسازی سایپا",
-      description_en: "SAIPA Automotive",
-      vehicle_type_id: 1,
-    },
-    model: {
-      id: 2,
-      brand_id: 2,
-      name_fa: "131",
-      name_en: "131",
-      description_fa: "پراید 131",
-      description_en: "Pride 131",
-    },
-    generation: {
-      id: 2,
-      model_id: 2,
-      name_fa: "131 SE",
-      name_en: "131 SE",
-      description_fa: "پراید 131 نسل جدید",
-      description_en: "Pride 131 SE",
-      start_year: 1390,
-      end_year: 1400,
-      engine: "EF7",
-      engine_volume: 1300,
-      cylinders: 4,
-      fuel_type: "بنزین",
-      gearbox: "دستی",
-      drivetrain_fa: "جلو",
-      drivetrain_en: "FWD",
-      body_style_fa: "هاچ‌بک",
-      body_style_en: "Hatchback",
-      assembler: "سایپا",
-      assembly_type: "Local",
-      seller: "سایپا",
-      battery: "12V",
-    },
-    type: {
-      id: 1,
-      name_fa: "سواری",
-      name_en: "Passenger",
-      description_fa: "خودروی سواری",
-      description_en: "Passenger Car",
-    },
-    // اطلاعات اضافی برای نمایش
-    status: "active",
-    lastService: "1403/08/10",
-    nextService: 125000,
-    services: [
-      {
-        id: 3,
-        type: "تعویض روغن",
-        date: "1403/08/10",
-        mileage: 118000,
-        status: "completed",
-        nextDue: 125000,
-        cost: 400000,
-        urgent: false,
-      },
-    ],
-  },
-];
-
-// Filter options
-const brandOptions = ["همه", "پژو", "پراید", "سمند", "دنا", "سایپا"];
-const yearOptions = ["همه", "1395-1399", "1400-1403", "1404+"];
-const statusOptions = ["همه", "فعال", "نیاز به سرویس", "غیرفعال"];
-const sortOptions = [
-  { value: "name", label: "نام خودرو" },
-  { value: "year", label: "سال تولید" },
-  { value: "mileage", label: "کیلومتر" },
-  { value: "lastService", label: "آخرین سرویس" },
-];
+import { vehicleService, UserVehicleResponse } from "@/services/vehicleService";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -266,460 +67,327 @@ export default function Vehicles() {
   const router = useRouter();
   const { isMobile } = useResponsive();
 
+  // Fetch user vehicles from backend
+  const {
+    data: vehiclesData,
+    isLoading: vehiclesLoading,
+    error: vehiclesError,
+    refetch: refetchVehicles,
+  } = useQuery({
+    queryKey: ["userVehicles"],
+    queryFn: vehicleService.getUserVehicles,
+    enabled: !!user,
+  });
+
+  const vehicles = vehiclesData || [];
+
   // State management
   const [tabValue, setTabValue] = useState(0);
-  const [searchMode, setSearchMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullStartY, setPullStartY] = useState(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
 
-  // Filter states
-  const [filters, setFilters] = useState({
-    brand: "همه",
-    year: "همه",
-    status: "همه",
-    sortBy: "name",
-    sortOrder: "asc" as "asc" | "desc",
-  });
+  // Delete functionality
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] =
+    useState<UserVehicleResponse | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // View options
-  const [viewOptions, setViewOptions] = useState({
-    showImages: true,
-    compactView: false,
-    showCosts: true,
-  });
+  // Swipe states
+  const [swipeStates, setSwipeStates] = useState<
+    Record<number, { x: number; showDelete: boolean }>
+  >({});
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  const handleMenuClick = (
-    event: React.MouseEvent<HTMLElement>,
-    vehicle: any
-  ) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setSelectedVehicle(vehicle);
+  // Pull to refresh handler
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchVehicles();
+    } catch (error) {
+      console.error("Error refreshing vehicles:", error);
+    } finally {
+      setIsRefreshing(false);
+      setIsPulling(false);
+      setPullDistance(0);
+    }
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedVehicle(null);
-  };
+  // Touch handlers for pull to refresh
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (window.scrollY === 0) {
+      setPullStartY(e.touches[0].clientY);
+      setIsPulling(true);
+    }
+  }, []);
 
-  const handleFilterChange = (filterName: string, value: any) => {
-    setFilters((prev) => ({ ...prev, [filterName]: value }));
-  };
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!isPulling || window.scrollY > 0) return;
 
-  // Filter and sort vehicles
-  const filteredVehicles = useMemo(() => {
-    let result = mockVehicles.filter((vehicle) => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        if (
-          !vehicle.name.toLowerCase().includes(query) &&
-          !vehicle.model.name_fa.toLowerCase().includes(query) &&
-          !vehicle.license_plate.includes(query)
-        ) {
-          return false;
-        }
+      const currentY = e.touches[0].clientY;
+      const distance = Math.max(0, currentY - pullStartY);
+
+      if (distance > 0) {
+        e.preventDefault();
+        setPullDistance(Math.min(distance, 100));
       }
+    },
+    [isPulling, pullStartY]
+  );
 
-      // Brand filter
-      if (filters.brand !== "همه" && vehicle.brand.name_fa !== filters.brand) {
-        return false;
-      }
+  const handleTouchEnd = useCallback(() => {
+    if (pullDistance > 60) {
+      handleRefresh();
+    } else {
+      setIsPulling(false);
+      setPullDistance(0);
+      setPullStartY(0);
+    }
+  }, [pullDistance]);
 
-      // Year filter
-      if (filters.year !== "همه") {
-        const yearRange = filters.year.split("-");
-        if (yearRange.length === 2) {
-          const minYear = parseInt(yearRange[0]);
-          const maxYear = yearRange[1] === "+" ? 9999 : parseInt(yearRange[1]);
-          if (
-            vehicle.production_year < minYear ||
-            vehicle.production_year > maxYear
-          ) {
-            return false;
+  // Add touch event listeners
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.addEventListener("touchstart", handleTouchStart, {
+        passive: false,
+      });
+      document.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
+      document.addEventListener("touchend", handleTouchEnd);
+
+      return () => {
+        document.removeEventListener("touchstart", handleTouchStart);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
+      };
+    }
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+  // Swipe handlers for delete
+  const handleSwipeStart = useCallback((vehicleId: number, startX: number) => {
+    setSwipeStates((prev) => ({
+      ...prev,
+      [vehicleId]: { x: 0, showDelete: false },
+    }));
+  }, []);
+
+  const handleSwipeMove = useCallback((vehicleId: number, deltaX: number) => {
+    if (deltaX < 0) {
+      // Only allow left swipe
+      const distance = Math.min(Math.abs(deltaX), 180);
+      setSwipeStates((prev) => ({
+        ...prev,
+        [vehicleId]: {
+          x: distance,
+          showDelete: distance > 50,
+        },
+      }));
+    }
+  }, []);
+
+  const handleSwipeEnd = useCallback(
+    (vehicleId: number) => {
+      // Get the current state directly from the latest swipeStates
+      setSwipeStates((prev) => {
+        const currentState = prev[vehicleId];
+
+        // If swiped far enough (>150px), directly delete
+        if (Math.abs(currentState?.x || 0) > 150) {
+          const vehicle = vehicles.find((v) => v.id === vehicleId);
+          if (vehicle) {
+            // Reset state first, then trigger delete
+            setTimeout(() => handleDeleteClick(vehicle), 0);
           }
+          return {
+            ...prev,
+            [vehicleId]: { x: 0, showDelete: false },
+          };
         }
-      }
 
-      // Status filter
-      if (filters.status !== "همه") {
-        const needsService = vehicle.services.some(
-          (s) => vehicle.current_mileage >= s.nextDue - 2000
-        );
-        if (filters.status === "نیاز به سرویس" && !needsService) {
-          return false;
+        // If delete button should be shown, keep it visible
+        if (currentState?.showDelete) {
+          return {
+            ...prev,
+            [vehicleId]: { x: 80, showDelete: true },
+          };
+        } else {
+          // Reset swipe if not enough distance
+          return {
+            ...prev,
+            [vehicleId]: { x: 0, showDelete: false },
+          };
         }
-        if (filters.status === "فعال" && needsService) {
-          return false;
-        }
-      }
+      });
+    },
+    [vehicles]
+  );
 
-      return true;
-    });
+  // Delete handlers
+  const handleDeleteClick = (vehicle: UserVehicleResponse) => {
+    setVehicleToDelete(vehicle);
+    setDeleteDialogOpen(true);
+    // Reset swipe state
+    setSwipeStates((prev) => ({
+      ...prev,
+      [vehicle.id]: { x: 0, showDelete: false },
+    }));
+  };
 
-    // Sort
-    result.sort((a, b) => {
-      let aValue, bValue;
-      switch (filters.sortBy) {
-        case "name":
-          aValue = a.name;
-          bValue = b.name;
-          break;
-        case "year":
-          aValue = a.production_year;
-          bValue = b.production_year;
-          break;
-        case "mileage":
-          aValue = a.current_mileage;
-          bValue = b.current_mileage;
-          break;
-        case "lastService":
-          aValue = new Date(a.lastService).getTime();
-          bValue = new Date(b.lastService).getTime();
-          break;
-        default:
-          return 0;
-      }
+  const handleDeleteConfirm = async () => {
+    if (!vehicleToDelete) return;
 
-      if (aValue < bValue) return filters.sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return filters.sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [searchQuery, filters]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "success";
-      case "pending":
-        return "warning";
-      case "overdue":
-        return "error";
-      default:
-        return "default";
+    setIsDeleting(true);
+    try {
+      await vehicleService.deleteUserVehicle(vehicleToDelete.id);
+      await refetchVehicles(); // Refresh the list
+      setDeleteDialogOpen(false);
+      setVehicleToDelete(null);
+    } catch (error: any) {
+      console.error("Error deleting vehicle:", error);
+      // Handle error - could show toast or alert
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "تکمیل شده";
-      case "pending":
-        return "در انتظار";
-      case "overdue":
-        return "عقب افتاده";
-      default:
-        return "نامشخص";
-    }
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setVehicleToDelete(null);
   };
 
-  const needsService = (vehicle: any) => {
-    return vehicle.services.some(
-      (service: any) => vehicle.current_mileage >= service.nextDue - 2000
-    );
+  // Reset swipe state when clicking elsewhere
+  const resetSwipeState = (vehicleId: number) => {
+    setSwipeStates((prev) => ({
+      ...prev,
+      [vehicleId]: { x: 0, showDelete: false },
+    }));
   };
 
-  const getUrgentServices = () => {
-    return mockVehicles.flatMap((vehicle) =>
-      vehicle.services
-        .filter(
-          (service) =>
-            service.urgent || vehicle.current_mileage >= service.nextDue - 1000
-        )
-        .map((service) => ({
-          ...service,
-          vehicleName: vehicle.name,
-          vehicleId: vehicle.id,
-        }))
-    );
-  };
-
-  const filteredServices = mockVehicles
-    .flatMap((vehicle) =>
-      vehicle.services.map((service) => ({
-        ...service,
-        vehicleName: vehicle.name,
-        vehicleId: vehicle.id,
-      }))
-    )
-    .filter((service) => {
-      if (tabValue === 1) return service.status === "completed";
-      if (tabValue === 2) return service.status === "pending" || service.urgent;
-      return true;
-    });
-
-  // Statistics
+  // Statistics based on API data
   const stats = {
-    totalVehicles: mockVehicles.length,
-    activeVehicles: mockVehicles.filter((v) => v.status === "active").length,
-    needsServiceCount: mockVehicles.filter(needsService).length,
-    totalServices: mockVehicles.reduce((sum, v) => sum + v.services.length, 0),
-    urgentReminders: getUrgentServices().length,
+    totalVehicles: vehicles.length,
+    totalServices: 0, // Will be calculated when services API is integrated
+    urgentReminders: 0, // Will be calculated when services API is integrated
   };
 
   return (
     <AppContainer
       header={
-        searchMode ? (
-          <SearchHeader
-            placeholder="جستجو در خودروها..."
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onBlur={() => setSearchMode(false)}
-            autoFocus
-          />
-        ) : (
-          <Header
-            title="خودروها و سرویس‌ها"
-            subtitle={`${stats.totalVehicles} خودرو | ${stats.totalServices} سرویس`}
-            actions={[
-              <IconButton
-                key="search"
-                onClick={() => setSearchMode(true)}
-                size="small"
-              >
-                <Search />
-              </IconButton>,
-              <IconButton
-                key="filter"
-                onClick={() => setShowFilters(true)}
-                size="small"
-                color={
-                  Object.values(filters).some(
-                    (v) => v !== "همه" && v !== "name" && v !== "asc"
-                  )
-                    ? "primary"
-                    : "default"
-                }
-              >
-                <FilterList />
-              </IconButton>,
-              <IconButton
-                key="refresh"
-                onClick={() => window.location.reload()}
-                size="small"
-              >
-                <Refresh />
-              </IconButton>,
-            ]}
-          />
-        )
-      }
-      fab={
-        <FloatingButton
-          icon={<Add />}
-          onClick={() => router.push("/dashboard/vehicles/add")}
+        <Header
+          title="خودروها و سرویس‌ها"
+          subtitle={`${stats.totalVehicles} خودرو | ${stats.totalServices} سرویس`}
+          leftActions={[
+            <AddButton
+              key="add-vehicle"
+              onClick={() => router.push("/dashboard/vehicles/add")}
+              variant="icon"
+              size="small"
+            />,
+          ]}
         />
       }
     >
-      <InactiveUserRestriction />
-
-      <ResponsiveContainer padding="medium" fullHeight={false}>
-        {/* Quick Stats */}
-        <SlideIn direction="up">
-          <ResponsiveGrid columns={{ xs: 2, sm: 4 }} gap={2} sx={{ mb: 3 }}>
-            <StatusCard
-              title="کل خودروها"
-              value={stats.totalVehicles.toString()}
-              subtitle="ثبت شده"
-              icon={<DirectionsCar />}
-              color="primary"
-            />
-            <StatusCard
-              title="نیاز به سرویس"
-              value={stats.needsServiceCount.toString()}
-              subtitle="خودرو"
-              icon={<Warning />}
-              color="warning"
-            />
-            <StatusCard
-              title="سرویس‌های امسال"
-              value={stats.totalServices.toString()}
-              subtitle="انجام شده"
-              icon={<Build />}
-              color="success"
-            />
-            <StatusCard
-              title="یادآوری فوری"
-              value={stats.urgentReminders.toString()}
-              subtitle="مورد"
-              icon={<Schedule />}
-              color="error"
-            />
-          </ResponsiveGrid>
-        </SlideIn>
-
-        {/* Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-          <Tabs value={tabValue} onChange={handleTabChange} variant="fullWidth">
-            <Tab
-              label={
-                <Badge badgeContent={stats.totalVehicles} color="primary">
-                  خودروها
-                </Badge>
-              }
-            />
-            <Tab
-              label={
-                <Badge
-                  badgeContent={
-                    filteredServices.filter((s) => s.status === "completed")
-                      .length
-                  }
-                  color="success"
-                >
-                  سرویس‌ها
-                </Badge>
-              }
-            />
-            <Tab
-              label={
-                <Badge badgeContent={stats.urgentReminders} color="error">
-                  یادآوری‌ها
-                </Badge>
-              }
-            />
-          </Tabs>
-        </Box>
-
-        {/* Vehicles Tab */}
-        <TabPanel value={tabValue} index={0}>
+      <Box
+        sx={{
+          transform: `translateY(${pullDistance * 0.5}px)`,
+          transition: isPulling ? "none" : "transform 0.3s ease-out",
+        }}
+      >
+        {/* Pull to refresh indicator */}
+        {(isPulling || isRefreshing) && (
           <Box
             sx={{
+              position: "absolute",
+              top: -60,
+              left: "50%",
+              transform: "translateX(-50%)",
               display: "flex",
-              justifyContent: "space-between",
+              flexDirection: "column",
               alignItems: "center",
-              mb: 2,
+              zIndex: 1000,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              p: 2,
+              boxShadow: 2,
             }}
           >
-            <SectionHeader title={`خودروهای من (${filteredVehicles.length})`} />
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                variant={viewOptions.compactView ? "contained" : "outlined"}
-                onClick={() =>
-                  setViewOptions((prev) => ({
-                    ...prev,
-                    compactView: !prev.compactView,
-                  }))
+            {isRefreshing ? (
+              <CircularProgress size={24} />
+            ) : (
+              <ArrowDownward
+                sx={{
+                  color: pullDistance > 60 ? "primary.main" : "text.secondary",
+                  transform: pullDistance > 60 ? "rotate(180deg)" : "none",
+                  transition: "all 0.2s ease",
+                }}
+              />
+            )}
+            <Typography variant="caption" sx={{ mt: 1 }}>
+              {isRefreshing
+                ? "در حال بروزرسانی..."
+                : pullDistance > 60
+                ? "رها کنید تا بروزرسانی شود"
+                : "برای بروزرسانی بکشید"}
+            </Typography>
+          </Box>
+        )}
+        <ResponsiveContainer
+          padding="medium"
+          fullHeight={false}
+          onClick={() => {
+            // Reset all swipe states when clicking on empty area
+            setSwipeStates({});
+          }}
+        >
+          {/* Tabs */}
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              variant="fullWidth"
+            >
+              <Tab
+                label={
+                  <Badge badgeContent={stats.totalVehicles} color="primary">
+                    خودروها
+                  </Badge>
                 }
-              >
-                {viewOptions.compactView ? "نمایش کامل" : "نمایش فشرده"}
-              </Button>
-            </Box>
+              />
+              <Tab
+                label={
+                  <Badge badgeContent={stats.totalServices} color="success">
+                    سرویس‌ها
+                  </Badge>
+                }
+              />
+              <Tab
+                label={
+                  <Badge badgeContent={stats.urgentReminders} color="error">
+                    یادآوری‌ها
+                  </Badge>
+                }
+              />
+            </Tabs>
           </Box>
 
-          <StaggeredList>
-            {filteredVehicles.map((vehicle) => (
-              <ListItem
-                key={vehicle.id}
-                title={vehicle.name}
-                subtitle={
-                  viewOptions.compactView || isMobile
-                    ? `${
-                        vehicle.production_year
-                      } | ${vehicle.current_mileage.toLocaleString()} کم`
-                    : `${vehicle.model.name_fa} - ${
-                        vehicle.production_year
-                      } | ${vehicle.current_mileage.toLocaleString()} کیلومتر | آخرین سرویس: ${
-                        vehicle.lastService
-                      }`
-                }
-                avatar={
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 2,
-                      bgcolor: needsService(vehicle)
-                        ? "warning.light"
-                        : "primary.light",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: needsService(vehicle)
-                        ? "warning.dark"
-                        : "primary.dark",
-                    }}
-                  >
-                    <DirectionsCar />
-                  </Box>
-                }
-                badge={
-                  needsService(vehicle)
-                    ? vehicle.services.filter(
-                        (s) => vehicle.current_mileage >= s.nextDue - 2000
-                      ).length
-                    : undefined
-                }
-                status={needsService(vehicle) ? "offline" : "online"}
-                rightContent={
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0.5,
-                        alignItems: "flex-end",
-                        minWidth: 0, // اجازه shrink
-                      }}
-                    >
-                      <Chip
-                        label={vehicle.license_plate}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          maxWidth: { xs: 80, sm: "none" },
-                          "& .MuiChip-label": {
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          },
-                        }}
-                      />
-                      {needsService(vehicle) && (
-                        <Chip
-                          label={isMobile ? "سرویس" : "نیاز به سرویس"}
-                          size="small"
-                          color="warning"
-                          sx={{
-                            maxWidth: { xs: 80, sm: "none" },
-                            "& .MuiChip-label": {
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            },
-                          }}
-                        />
-                      )}
-                      {viewOptions.showCosts && !isMobile && (
-                        <Typography variant="caption" color="text.secondary">
-                          سرویس بعدی: {vehicle.nextService.toLocaleString()}
-                        </Typography>
-                      )}
-                    </Box>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuClick(e, vehicle)}
-                    >
-                      <MoreVert />
-                    </IconButton>
-                  </Box>
-                }
-                onClick={() => router.push(`/dashboard/vehicles/${vehicle.id}`)}
-              />
-            ))}
-          </StaggeredList>
-
-          {filteredVehicles.length === 0 && (
-            <Card>
-              <CardContent sx={{ textAlign: "center", py: 4 }}>
+          {/* Vehicles Tab */}
+          <TabPanel value={tabValue} index={0}>
+            {vehiclesLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : vehiclesError ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                خطا در بارگذاری لیست خودروها. لطفاً دوباره تلاش کنید.
+              </Alert>
+            ) : vehicles.length === 0 ? (
+              <Box sx={{ textAlign: "center", py: 8 }}>
                 <DirectionsCar
                   sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
                 />
@@ -729,341 +397,250 @@ export default function Vehicles() {
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  sx={{ mb: 2 }}
+                  sx={{ mb: 3 }}
                 >
-                  {searchQuery ||
-                  Object.values(filters).some(
-                    (v) => v !== "همه" && v !== "name" && v !== "asc"
-                  )
-                    ? "نتیجه‌ای برای فیلتر یا جستجوی شما یافت نشد"
-                    : "هنوز خودرویی ثبت نکرده‌اید"}
+                  برای شروع، اولین خودروی خود را اضافه کنید
                 </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<Add />}
-                  onClick={() => router.push("/dashboard/vehicles/add")}
-                >
-                  افزودن خودرو
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabPanel>
+                <Card>
+                  <CardContent>
+                    <Typography variant="body2" color="primary">
+                      💡 با کلیک روی دکمه + در بالای صفحه، خودرو اضافه کنید
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
+            ) : (
+              <StaggeredList>
+                {vehicles.map((vehicle: UserVehicleResponse) => {
+                  const swipeState = swipeStates[vehicle.id] || {
+                    x: 0,
+                    showDelete: false,
+                  };
 
-        {/* Services Tab */}
-        <TabPanel value={tabValue} index={1}>
-          <SectionHeader title="سرویس‌های تکمیل شده" />
-          <StaggeredList>
-            {filteredServices
-              .filter((service) => service.status === "completed")
-              .map((service) => (
-                <ListItem
-                  key={`${service.vehicleId}-${service.id}`}
-                  title={service.type}
-                  subtitle={
-                    isMobile
-                      ? `${service.vehicleName} - ${service.date}`
-                      : `${service.vehicleName} - ${
-                          service.date
-                        } | کیلومتر: ${service.mileage?.toLocaleString()}`
-                  }
-                  avatar={
+                  return (
                     <Box
+                      key={vehicle.id}
                       sx={{
-                        width: 40,
-                        height: 40,
+                        position: "relative",
+                        overflow: "hidden",
                         borderRadius: 2,
-                        bgcolor: "success.light",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "success.dark",
+                        mb: 1,
                       }}
                     >
-                      <Build />
-                    </Box>
-                  }
-                  rightContent={
-                    <Box sx={{ textAlign: "right", minWidth: 0 }}>
-                      <Chip
-                        label={getStatusText(service.status)}
-                        color={getStatusColor(service.status)}
-                        size="small"
+                      {/* Delete button background */}
+                      <Box
                         sx={{
-                          maxWidth: { xs: 70, sm: "none" },
-                          "& .MuiChip-label": {
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          },
+                          position: "absolute",
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 80,
+                          bgcolor: "error.main",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexDirection: "column",
+                          opacity: swipeState.showDelete ? 1 : 0,
+                          transition: "opacity 0.2s ease",
+                          gap: 0.5,
                         }}
-                      />
-                      {viewOptions.showCosts && !isMobile && (
-                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                          {service.cost?.toLocaleString()} تومان
+                        onClick={() => handleDeleteClick(vehicle)}
+                      >
+                        <Delete sx={{ color: "white", fontSize: 20 }} />
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "white", fontSize: "1rem" }}
+                        >
+                          حذف
                         </Typography>
-                      )}
-                    </Box>
-                  }
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/vehicles/${service.vehicleId}/services/${service.id}`
-                    )
-                  }
-                />
-              ))}
-          </StaggeredList>
-        </TabPanel>
+                      </Box>
 
-        {/* Reminders Tab */}
-        <TabPanel value={tabValue} index={2}>
-          <SectionHeader title="یادآوری‌های فوری" />
-          <StaggeredList>
-            {getUrgentServices().map((service) => (
-              <ListItem
-                key={`${service.vehicleId}-${service.id}`}
-                title={service.type}
-                subtitle={
-                  isMobile
-                    ? service.vehicleName
-                    : `${
-                        service.vehicleName
-                      } - سرویس بعدی: ${service.nextDue?.toLocaleString()} کیلومتر`
-                }
-                avatar={
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 2,
-                      bgcolor: service.urgent ? "error.light" : "warning.light",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: service.urgent ? "error.dark" : "warning.dark",
-                    }}
-                  >
-                    <Schedule />
-                  </Box>
-                }
-                rightContent={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                      minWidth: 0,
-                      alignItems: "flex-end",
-                    }}
-                  >
-                    {service.urgent && (
-                      <Chip
-                        label="فوری"
-                        color="error"
-                        size="small"
+                      {/* Swipeable content */}
+                      <Box
                         sx={{
-                          maxWidth: { xs: 60, sm: "none" },
-                          "& .MuiChip-label": {
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          },
+                          transform: `translateX(${swipeState.x}px)`,
+                          transition:
+                            swipeState.x === 0 ? "transform 0.3s ease" : "none",
                         }}
-                      />
-                    )}
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color={service.urgent ? "error" : "warning"}
-                      sx={{
-                        minWidth: { xs: 70, sm: "auto" },
-                        fontSize: { xs: "0.7rem", sm: "0.875rem" },
-                      }}
-                    >
-                      {isMobile ? "سرویس" : "ثبت سرویس"}
-                    </Button>
-                  </Box>
-                }
-                onClick={() =>
-                  router.push(`/dashboard/vehicles/${service.vehicleId}`)
-                }
-              />
-            ))}
-          </StaggeredList>
-        </TabPanel>
-      </ResponsiveContainer>
+                        onTouchStart={(e) => {
+                          const touch = e.touches[0];
+                          handleSwipeStart(vehicle.id, touch.clientX);
 
-      {/* Vehicle Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem
-          onClick={() => {
-            router.push(`/dashboard/vehicles/${selectedVehicle?.id}`);
-            handleMenuClose();
-          }}
+                          let startX = touch.clientX;
+
+                          const handleTouchMove = (moveEvent: TouchEvent) => {
+                            const currentX = moveEvent.touches[0].clientX;
+                            const deltaX = currentX - startX;
+                            handleSwipeMove(vehicle.id, deltaX);
+                          };
+
+                          const handleTouchEnd = () => {
+                            handleSwipeEnd(vehicle.id);
+                            document.removeEventListener(
+                              "touchmove",
+                              handleTouchMove
+                            );
+                            document.removeEventListener(
+                              "touchend",
+                              handleTouchEnd
+                            );
+                          };
+
+                          document.addEventListener(
+                            "touchmove",
+                            handleTouchMove,
+                            { passive: false }
+                          );
+                          document.addEventListener("touchend", handleTouchEnd);
+                        }}
+                      >
+                        <ListItem
+                          title={vehicle.name}
+                          subtitle={
+                            isMobile
+                              ? `${vehicle.production_year} | ${
+                                  vehicle.current_mileage?.toLocaleString() || 0
+                                } کم`
+                              : `${
+                                  vehicle.model?.name_fa ||
+                                  vehicle.brand?.name_fa ||
+                                  "نامشخص"
+                                } - ${vehicle.production_year} | ${
+                                  vehicle.current_mileage?.toLocaleString() || 0
+                                } کیلومتر`
+                          }
+                          avatar={
+                            <Box
+                              sx={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 2,
+                                bgcolor: "primary.light",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "primary.dark",
+                              }}
+                            >
+                              <DirectionsCar />
+                            </Box>
+                          }
+                          rightContent={
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "flex-end",
+                                  gap: 0.5,
+                                }}
+                              >
+                                {vehicle.license_plate && (
+                                  <Chip
+                                    label={vehicle.license_plate}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ maxWidth: { xs: 100, sm: "none" } }}
+                                  />
+                                )}
+                                {vehicle.color && !isMobile && (
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    رنگ: {vehicle.color}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+                          }
+                          onClick={() => {
+                            // Reset any open swipe states
+                            Object.keys(swipeStates).forEach((id) => {
+                              if (Number(id) !== vehicle.id) {
+                                resetSwipeState(Number(id));
+                              }
+                            });
+                            router.push(`/dashboard/vehicles/${vehicle.id}`);
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </StaggeredList>
+            )}
+          </TabPanel>
+
+          {/* Services Tab */}
+          <TabPanel value={tabValue} index={1}>
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <Build sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                سرویس‌ها
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                لیست سرویس‌ها پس از پیاده‌سازی API نمایش داده خواهد شد
+              </Typography>
+            </Box>
+          </TabPanel>
+
+          {/* Reminders Tab */}
+          <TabPanel value={tabValue} index={2}>
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <Schedule sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                یادآوری‌ها
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                یادآوری‌های سرویس پس از پیاده‌سازی API نمایش داده خواهد شد
+              </Typography>
+            </Box>
+          </TabPanel>
+        </ResponsiveContainer>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          maxWidth="sm"
+          fullWidth
         >
-          <Visibility sx={{ mr: 1 }} />
-          مشاهده جزئیات
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            router.push(`/dashboard/vehicles/${selectedVehicle?.id}/edit`);
-            handleMenuClose();
-          }}
-        >
-          <Edit sx={{ mr: 1 }} />
-          ویرایش
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleMenuClose}>
-          <Share sx={{ mr: 1 }} />
-          اشتراک‌گذاری
-        </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <PictureAsPdf sx={{ mr: 1 }} />
-          خروجی PDF
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleMenuClose} sx={{ color: "error.main" }}>
-          <Delete sx={{ mr: 1 }} />
-          حذف
-        </MenuItem>
-      </Menu>
-
-      {/* Filter Dialog */}
-      <Dialog
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>فیلتر و مرتب‌سازی</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
-            {/* Brand Filter */}
-            <FormControl fullWidth>
-              <InputLabel>برند خودرو</InputLabel>
-              <Select
-                value={filters.brand}
-                onChange={(e) => handleFilterChange("brand", e.target.value)}
-                label="برند خودرو"
-              >
-                {brandOptions.map((brand) => (
-                  <MenuItem key={brand} value={brand}>
-                    {brand}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Year Filter */}
-            <FormControl fullWidth>
-              <InputLabel>سال تولید</InputLabel>
-              <Select
-                value={filters.year}
-                onChange={(e) => handleFilterChange("year", e.target.value)}
-                label="سال تولید"
-              >
-                {yearOptions.map((year) => (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Status Filter */}
-            <FormControl fullWidth>
-              <InputLabel>وضعیت</InputLabel>
-              <Select
-                value={filters.status}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-                label="وضعیت"
-              >
-                {statusOptions.map((status) => (
-                  <MenuItem key={status} value={status}>
-                    {status}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Sort Options */}
-            <FormControl fullWidth>
-              <InputLabel>مرتب‌سازی بر اساس</InputLabel>
-              <Select
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                label="مرتب‌سازی بر اساس"
-              >
-                {sortOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Sort Order */}
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={filters.sortOrder === "desc"}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "sortOrder",
-                      e.target.checked ? "desc" : "asc"
-                    )
-                  }
-                />
-              }
-              label="مرتب‌سازی نزولی"
-            />
-
-            <Divider />
-
-            {/* View Options */}
-            <Typography variant="subtitle2" color="text.secondary">
-              گزینه‌های نمایش
+          <DialogTitle sx={{ color: "error.main" }}>حذف خودرو</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" gutterBottom>
+              آیا مطمئن هستید که می‌خواهید خودرو "{vehicleToDelete?.name}" را
+              حذف کنید؟
             </Typography>
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={viewOptions.showCosts}
-                  onChange={(e) =>
-                    setViewOptions((prev) => ({
-                      ...prev,
-                      showCosts: e.target.checked,
-                    }))
-                  }
-                />
+            <Typography variant="body2" color="text.secondary">
+              این عمل قابل برگشت نیست و تمام اطلاعات مربوط به این خودرو از جمله
+              سرویس‌ها و یادآوری‌ها حذف خواهد شد.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} disabled={isDeleting}>
+              انصراف
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              color="error"
+              variant="contained"
+              disabled={isDeleting}
+              startIcon={
+                isDeleting ? <CircularProgress size={16} /> : <Delete />
               }
-              label="نمایش هزینه‌ها"
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setFilters({
-                brand: "همه",
-                year: "همه",
-                status: "همه",
-                sortBy: "name",
-                sortOrder: "asc",
-              });
-              setSearchQuery("");
-            }}
-          >
-            ریست
-          </Button>
-          <Button onClick={() => setShowFilters(false)} variant="contained">
-            اعمال
-          </Button>
-        </DialogActions>
-      </Dialog>
+            >
+              {isDeleting ? "در حال حذف..." : "حذف خودرو"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </AppContainer>
   );
 }

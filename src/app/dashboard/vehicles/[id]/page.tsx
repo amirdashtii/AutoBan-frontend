@@ -1,334 +1,303 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Box,
   Button,
   Tabs,
   Tab,
-  Chip,
   Card,
   CardContent,
   Typography,
-  Divider,
-  Grid,
-  IconButton,
+  CircularProgress,
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import {
   DirectionsCar,
   Build,
   Edit,
-  Add,
   Timeline,
-  Speed,
-  Palette,
+  ExpandMore,
 } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
 import {
   AppContainer,
   Header,
   ResponsiveContainer,
-  ResponsiveGrid,
-  ListItem,
-  SectionHeader,
-  StatusCard,
-  FloatingButton,
-  SlideIn,
-  StaggeredList,
+  EditButton,
 } from "@/components/ui";
 import { IranLicensePlate } from "@/components/ui";
+import { vehicleService, UserVehicleResponse } from "@/services/vehicleService";
 
-// Mock data
-const mockVehicle = {
-  id: 1,
-  name: "پژو 206",
-  user_id: "user123",
-  license_plate: "12 ج 345 98",
-  current_mileage: 85000,
-  color: "نقره‌ای",
-  production_year: 1399,
-  purchase_date: "1399/05/12",
-  vin: "NMT206123456789",
-  generation_id: 1,
-  brand: {
-    id: 1,
-    name_fa: "پژو",
-    name_en: "Peugeot",
-    description_fa: "خودروسازی پژو",
-    description_en: "Peugeot Automotive",
-    vehicle_type_id: 1,
-  },
-  model: {
-    id: 1,
-    brand_id: 1,
-    name_fa: "206",
-    name_en: "206",
-    description_fa: "پژو 206 صندوقدار",
-    description_en: "Peugeot 206 Sedan",
-  },
-  generation: {
-    id: 1,
-    model_id: 1,
-    name_fa: "206 صندوقدار",
-    name_en: "206 Sedan",
-    description_fa: "نسل اول پژو 206 صندوقدار",
-    description_en: "First generation Peugeot 206 Sedan",
-    start_year: 1385,
-    end_year: 1405,
-    engine: "TU3JP",
-    engine_volume: 1600,
-    cylinders: 4,
-    fuel_type: "بنزین",
-    gearbox: "دستی",
-    drivetrain_fa: "جلو",
-    drivetrain_en: "FWD",
-    body_style_fa: "صندوقدار",
-    body_style_en: "Sedan",
-    assembler: "ایران خودرو",
-    assembly_type: "CKD",
-    seller: "ایران خودرو",
-    battery: "12V",
-  },
-  type: {
-    id: 1,
-    name_fa: "سواری",
-    name_en: "Passenger",
-    description_fa: "خودروی سواری",
-    description_en: "Passenger Car",
-  },
-  services: [
-    {
-      id: 1,
-      type: "تعویض روغن موتور",
-      date: "1403/09/15",
-      mileage: 83000,
-      status: "completed",
-      cost: 450000,
-    },
-    {
-      id: 2,
-      type: "تعویض فیلتر هوا",
-      date: "1403/09/20",
-      status: "pending",
-      nextDue: 88000,
-    },
-  ],
-};
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`vehicle-tabpanel-${index}`}
+      aria-labelledby={`vehicle-tab-${index}`}
+      {...other}
+    >
+      {value === index && children}
+    </div>
+  );
+}
 
 export default function VehicleDetails() {
   const router = useRouter();
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  const vehicleId = params?.id as string;
+
+  // Fetch vehicle details from backend
+  const {
+    data: vehicle,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["userVehicle", vehicleId],
+    queryFn: () => vehicleService.getUserVehicle(Number(vehicleId)),
+    enabled: !!vehicleId,
+  });
+
+  // State management
   const [tabValue, setTabValue] = useState(0);
 
-  const vehicle = mockVehicle;
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   return (
     <AppContainer
       header={
         <Header
-          title={vehicle.name}
-          subtitle={`${vehicle.brand.name_fa} ${vehicle.model.name_fa} - ${vehicle.production_year}`}
+          title={vehicle?.name || "جزئیات خودرو"}
+          subtitle="مشاهده اطلاعات کامل خودرو"
           showBack
           onBackClick={() => router.back()}
-          actions={[
-            <IconButton key="edit">
-              <Edit />
-            </IconButton>,
+          leftActions={[
+            <EditButton
+              key="edit"
+              onClick={() =>
+                router.push(`/dashboard/vehicles/${vehicleId}/edit`)
+              }
+              variant="text"
+              size="small"
+              disabled={!vehicle}
+            />,
           ]}
-        />
-      }
-      fab={
-        <FloatingButton
-          icon={<Add />}
-          onClick={() => router.push(`/dashboard/vehicles/${id}/services/add`)}
         />
       }
     >
       <ResponsiveContainer padding="medium" fullHeight={false}>
-        {/* Vehicle Info Card */}
-        <SlideIn direction="up">
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
-              >
-                <Box
-                  sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 3,
-                    bgcolor: "primary.light",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "primary.dark",
-                  }}
-                >
-                  <DirectionsCar sx={{ fontSize: 30 }} />
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {vehicle.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {vehicle.brand.name_fa} {vehicle.model.name_fa} - سال{" "}
-                    {vehicle.production_year}
-                  </Typography>
-                </Box>
-                <Chip
-                  label={vehicle.color}
-                  icon={<Palette />}
-                  variant="outlined"
-                />
+        {/* Loading State */}
+        {isLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            خطا در بارگذاری اطلاعات خودرو. لطفاً دوباره تلاش کنید.
+          </Alert>
+        ) : !vehicle ? (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            خودروی مورد نظر یافت نشد.
+          </Alert>
+        ) : (
+          <>
+            {/* Vehicle Info Card */}
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {/* Vehicle Name and Type */}
+              <Box sx={{ textAlign: "center", mb: 2 }}>
+                <Typography variant="h5" color="text.secondary">
+                  {vehicle.type?.name_fa} {vehicle.brand?.name_fa}{" "}
+                  {vehicle.model?.name_fa} {vehicle.generation?.name_fa} 
+                </Typography>
               </Box>
 
-              <Divider sx={{ my: 2 }} />
+              {/* License Plate */}
+              {vehicle.license_plate && (
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                  <IranLicensePlate
+                    value={vehicle.license_plate}
+                    vehicleType={
+                      vehicle.type?.name_fa === "موتورسیکلت"
+                        ? "motorcycle"
+                        : "car"
+                    }
+                  />
+                </Box>
+              )}
 
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    پلاک خودرو
-                  </Typography>
-                  <IranLicensePlate value={vehicle.license_plate} />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    کیلومتر فعلی
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.current_mileage.toLocaleString()} کم
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    سال تولید
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.production_year}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    موتور
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.generation.engine_volume}cc
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    سوخت
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.generation.fuel_type}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    گیربکس
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.generation.gearbox}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    سازنده
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    {vehicle.generation.assembler}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </SlideIn>
+              {/* Technical Specs and Details Accordion */}
+              {vehicle.generation && (
+                <Box
+                  sx={{
+                    borderBottom: 1,
+                    borderColor: "divider",
+                    mt: 2,
+                  }}
+                >
+                  <Accordion
+                    elevation={0}
+                    disableGutters
+                    sx={{ bgcolor: "transparent" }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMore />}
+                      sx={{
+                        px: 0,
+                        minHeight: "auto",
+                        "& .MuiAccordionSummary-content": { my: 1 },
+                        "&.Mui-expanded": { minHeight: "auto" },
+                      }}
+                    >
+                      <Typography variant="subtitle1">مشخصات بیشتر</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 0, pt: 0, pb: 1 }}>
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                          gap: 2,
+                          mb: 3,
+                        }}
+                      >
+                        {/* Basic Info */}
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            سال تولید
+                          </Typography>
+                          <Typography variant="body1">
+                            {vehicle.production_year}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            کیلومتر فعلی
+                          </Typography>
+                          <Typography variant="body1">
+                            {vehicle.current_mileage?.toLocaleString() || 0}{" "}
+                            کیلومتر
+                          </Typography>
+                        </Box>
+
+                        {vehicle.color && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              رنگ
+                            </Typography>
+                            <Typography variant="body1">
+                              {vehicle.color}
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {vehicle.vin && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              شماره شاسی
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              sx={{ wordBreak: "break-all" }}
+                            >
+                              {vehicle.vin}
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {/* Technical Specs */}
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            موتور
+                          </Typography>
+                          <Typography variant="body1">
+                            {vehicle.generation.engine}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            نوع سوخت
+                          </Typography>
+                          <Typography variant="body1">
+                            {vehicle.generation.fuel_type}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            گیربکس
+                          </Typography>
+                          <Typography variant="body1">
+                            {vehicle.generation.gearbox}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            بدنه
+                          </Typography>
+                          <Typography variant="body1">
+                            {vehicle.generation.body_style_fa}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                </Box>
+              )}
+            </Box>
+          </>
+        )}
 
         {/* Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-          <Tabs
-            value={tabValue}
-            onChange={(_, v) => setTabValue(v)}
-            variant="fullWidth"
-          >
-            <Tab label="سرویس‌ها" />
-            <Tab label="یادآوری‌ها" />
+          <Tabs value={tabValue} onChange={handleTabChange} variant="fullWidth">
+            <Tab icon={<Timeline />} label="تاریخچه" />
+            <Tab icon={<Build />} label="سرویس‌ها" />
           </Tabs>
         </Box>
 
-        {/* Services Tab */}
-        {tabValue === 0 && (
-          <StaggeredList>
-            {vehicle.services
-              .filter((service) => service.status === "completed")
-              .map((service) => (
-                <ListItem
-                  key={service.id}
-                  title={service.type}
-                  subtitle={`${
-                    service.date
-                  } - کیلومتر: ${service.mileage?.toLocaleString()}`}
-                  avatar={
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 2,
-                        bgcolor: "success.light",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "success.dark",
-                      }}
-                    >
-                      <Build />
-                    </Box>
-                  }
-                  rightContent={
-                    <Typography variant="body1">
-                      {service.cost?.toLocaleString()} تومان
-                    </Typography>
-                  }
-                />
-              ))}
-          </StaggeredList>
-        )}
+        {/* History Tab */}
+        <TabPanel value={tabValue} index={0}>
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Timeline sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              تاریخچه خودرو
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              تاریخچه سرویس‌ها و تعمیرات پس از پیاده‌سازی API نمایش داده خواهد
+              شد
+            </Typography>
+          </Box>
+        </TabPanel>
 
-        {/* Reminders Tab */}
-        {tabValue === 1 && (
-          <StaggeredList>
-            {vehicle.services
-              .filter((service) => service.status === "pending")
-              .map((service) => (
-                <ListItem
-                  key={service.id}
-                  title={service.type}
-                  subtitle={`سرویس بعدی: ${service.nextDue?.toLocaleString()} کیلومتر`}
-                  avatar={
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 2,
-                        bgcolor: "warning.light",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "warning.dark",
-                      }}
-                    >
-                      <Timeline />
-                    </Box>
-                  }
-                  rightContent={
-                    <Button size="small" variant="outlined" color="primary">
-                      ثبت سرویس
-                    </Button>
-                  }
-                />
-              ))}
-          </StaggeredList>
-        )}
+        {/* Services Tab */}
+        <TabPanel value={tabValue} index={1}>
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Build sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              سرویس‌های خودرو
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              لیست سرویس‌ها و تعمیرات پس از پیاده‌سازی API نمایش داده خواهد شد
+            </Typography>
+          </Box>
+        </TabPanel>
       </ResponsiveContainer>
     </AppContainer>
   );

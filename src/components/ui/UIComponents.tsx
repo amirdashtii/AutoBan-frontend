@@ -351,24 +351,11 @@ export const AppContainer: React.FC<AppContainerProps> = ({
       sx={{
         minHeight: "100vh",
         backgroundColor: "background.default",
-        pb: 10, // برای navigation
+        pb: 10,
+        pt: header ? 8 : 0,
       }}
     >
-      {header && (
-        <Box
-          sx={{
-            position: "sticky",
-            top: 0,
-            zIndex: 100,
-            backgroundColor: "background.paper",
-            borderBottom: 1,
-            borderColor: "divider",
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          {header}
-        </Box>
-      )}
+      {header}
       <Box sx={{ flex: 1 }}>{children}</Box>
       {fab}
     </Box>

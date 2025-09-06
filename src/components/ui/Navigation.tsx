@@ -31,7 +31,9 @@ interface HeaderProps {
   subtitle?: string;
   avatar?: React.ReactNode;
   showBack?: boolean;
-  actions?: React.ReactNode[];
+  actions?: React.ReactNode[]; // Backward compatibility - maps to rightActions
+  leftActions?: React.ReactNode[];
+  rightActions?: React.ReactNode[];
   onBackClick?: () => void;
   onAvatarClick?: () => void;
 }
@@ -41,7 +43,8 @@ export const Header: React.FC<HeaderProps> = ({
   subtitle,
   avatar,
   showBack = false,
-  actions = [],
+  leftActions = [],
+  rightActions = [],
   onBackClick,
   onAvatarClick,
 }) => {
@@ -58,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <AppBar
-      position="sticky"
+      position="fixed"
       elevation={0}
       sx={{
         backgroundColor: "background.paper",
@@ -67,41 +70,57 @@ export const Header: React.FC<HeaderProps> = ({
         color: "text.primary",
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        {/* Back Button */}
-        {showBack && (
-          <Button
-            onClick={handleBackClick}
-            variant="text"
-            color="primary"
-            sx={{
-              minWidth: "auto",
-              px: 1,
-              py: 0.5,
-              fontSize: "0.875rem",
-            }}
-          >
-            <ChevronRightIcon fontSize="large" />
-            بازگشت
-          </Button>
-        )}
-
-        {/* Avatar */}
-        {avatar && (
-          <IconButton onClick={onAvatarClick} sx={{ mr: 2, p: 0 }}>
-            {avatar}
-          </IconButton>
-        )}
-
-        {/* Title Section */}
+      <Toolbar sx={{ display: "flex", alignItems: "center", minHeight: 64 }}>
+        {/* Right Zone */}
         <Box
           sx={{
-            position: "absolute",
-            left: "50%",
-            transform: "translateX(-50%)",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            flex: 1,
+            justifyContent: "flex-start",
+          }}
+        >
+          {/* Back Button */}
+          {showBack && (
+            <Button
+              onClick={handleBackClick}
+              variant="text"
+              color="primary"
+              sx={{
+                minWidth: "auto",
+                px: 1,
+                py: 0.5,
+                fontSize: "0.875rem",
+              }}
+            >
+              <ChevronRightIcon fontSize="large" />
+              بازگشت
+            </Button>
+          )}
+
+          {/* Avatar */}
+          {avatar && (
+            <IconButton onClick={onAvatarClick} sx={{ p: 0 }}>
+              {avatar}
+            </IconButton>
+          )}
+
+          {/* Right Actions */}
+          {rightActions.map((action, index) => (
+            <React.Fragment key={index}>{action}</React.Fragment>
+          ))}
+        </Box>
+
+        {/* Center Zone */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            flex: 1,
             textAlign: "center",
             minWidth: 0,
-            maxWidth: "60%",
           }}
         >
           <Typography
@@ -112,6 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              width: "100%",
             }}
           >
             {title}
@@ -121,11 +141,11 @@ export const Header: React.FC<HeaderProps> = ({
               variant="caption"
               sx={{
                 color: "text.secondary",
-                display: "block",
                 lineHeight: 1,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
+                width: "100%",
               }}
             >
               {subtitle}
@@ -133,10 +153,18 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </Box>
 
-        {/* Actions and Back Button */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          {actions.map((action, index) => (
-            <React.Fragment key={index}>{action}</React.Fragment>
+        {/* left Zone */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            flex: 1,
+            justifyContent: "flex-end",
+          }}
+        >
+          {leftActions.map((action, index) => (
+            <React.Fragment key={`right-${index}`}>{action}</React.Fragment>
           ))}
         </Box>
       </Toolbar>

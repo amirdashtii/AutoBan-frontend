@@ -261,51 +261,50 @@ const IranLicensePlate: React.FC<IranLicensePlateProps> = ({
           flex: "1",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-evenly",
           px: "1cqw",
         }}
       >
-        {/* سه رقم سمت راست */}
-        <Typography
-          sx={{
-            fontSize: "16cqw",
-            fontWeight: 900,
-            lineHeight: 1,
-            color: color as string,
-            flex: 1,
-            textAlign: "center",
-          }}
-        >
-          {parsed ? toPersianDigits(parsed.mid3) : "---"}
-        </Typography>
+        {/* دو رقم سمت چپ */}
+        <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Typography
+            sx={{
+              fontSize: "16cqw",
+              fontWeight: 900,
+              lineHeight: 1,
+              color: color as string,
+            }}
+          >
+            {parsed ? toPersianDigits(parsed.left2) : "--"}
+          </Typography>
+        </Box>
 
         {/* حرف */}
-        <Typography
-          sx={{
-            fontSize: "16cqw",
-            fontWeight: 900,
-            lineHeight: 1,
-            color: color as string,
-            flex: 1,
-            textAlign: "center",
-          }}
-        >
-          {parsed ? parsed.letter : "-"}
-        </Typography>
+        <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Typography
+            sx={{
+              fontSize: "16cqw",
+              fontWeight: 900,
+              lineHeight: 1,
+              color: color as string,
+            }}
+          >
+            {parsed?.letter === "ژ" ? "♿︎" : parsed ? parsed.letter : "-"}
+          </Typography>
+        </Box>
 
-        {/* دو رقم سمت چپ */}
-        <Typography
-          sx={{
-            fontSize: "16cqw",
-            fontWeight: 900,
-            lineHeight: 1,
-            color: color as string,
-            flex: 1,
-            textAlign: "center",
-          }}
-        >
-          {parsed ? toPersianDigits(parsed.left2) : "--"}
-        </Typography>
+        {/* سه رقم سمت راست */}
+        <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Typography
+            sx={{
+              fontSize: "16cqw",
+              fontWeight: 900,
+              lineHeight: 1,
+              color: color as string,
+            }}
+          >
+            {parsed ? toPersianDigits(parsed.mid3) : "---"}
+          </Typography>
+        </Box>
       </Box>
 
       <RightCodeBand
