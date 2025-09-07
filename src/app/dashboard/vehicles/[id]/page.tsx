@@ -122,7 +122,7 @@ export default function VehicleDetails() {
               <Box sx={{ textAlign: "center", mb: 2 }}>
                 <Typography variant="h5" color="text.secondary">
                   {vehicle.type?.name_fa} {vehicle.brand?.name_fa}{" "}
-                  {vehicle.model?.name_fa} {vehicle.generation?.name_fa} 
+                  {vehicle.model?.name_fa} {vehicle.generation?.name_fa}
                 </Typography>
               </Box>
 
