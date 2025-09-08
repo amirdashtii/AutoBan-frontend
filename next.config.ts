@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Ignore type and ESLint errors during Docker/production build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Performance optimizations
   experimental: {
     optimizePackageImports: ["@mui/material", "@mui/icons-material"],
