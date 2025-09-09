@@ -149,8 +149,8 @@ export default function ForgotPassword({
       // Close the dialog after a short delay to show success message
       setTimeout(() => {
         handleCloseDialog();
-        // Redirect to dashboard since user is now logged in
-        window.location.href = "/dashboard";
+        // Redirect to home since user is now logged in
+        window.location.href = "/home";
       }, 2000);
     } catch (error: unknown) {
       const errorMessage =
@@ -203,7 +203,7 @@ export default function ForgotPassword({
             رمز عبور با موفقیت تغییر یافت
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            شما به صورت خودکار وارد شده‌اید و در حال هدایت به داشبورد هستید...
+            شما به صورت خودکار وارد شده‌اید و در حال هدایت به خانه هستید...
           </Typography>
           <Button variant="contained" fullWidth onClick={handleCloseDialog}>
             بستن

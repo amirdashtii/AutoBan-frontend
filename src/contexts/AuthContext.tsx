@@ -34,11 +34,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const currentPath = pathname;
     const isPublicPage = ["/signin", "/signup", "/"].includes(currentPath);
-    const isProtectedPage = currentPath.startsWith("/home") || currentPath.startsWith("/vehicles") || currentPath.startsWith("/profile");
+    const isProtectedPage =
+      currentPath.startsWith("/home") ||
+      currentPath.startsWith("/vehicles") ||
+      currentPath.startsWith("/profile");
 
     if (isAuthenticated && isPublicPage) {
-      // Authenticated user on public page → redirect to dashboard
-      router.replace("/dashboard");
+      // Authenticated user on public page → redirect to home
+      router.replace("/home");
     } else if (!isAuthenticated && isProtectedPage) {
       // Unauthenticated user on protected page → redirect to signin without flashing global error
       router.replace("/signin");

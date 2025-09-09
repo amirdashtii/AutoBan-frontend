@@ -8,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/signin",
     "/signup",
     "/forgot-password",
-    "/dashboard",
+    "/home",
     "/vehicles",
     "/profile",
   ];

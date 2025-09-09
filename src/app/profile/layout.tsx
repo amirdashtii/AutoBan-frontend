@@ -24,7 +24,7 @@ export default function ProfileLayout({
   const handleTabChange = (tab: NavigationTab) => {
     switch (tab) {
       case "home":
-        router.push("/dashboard");
+        router.push("/home");
         break;
       case "vehicles":
         router.push("/vehicles");

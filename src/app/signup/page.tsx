@@ -42,7 +42,7 @@ export default function Signup() {
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace("/home");
     }
   }, [isAuthenticated, router]);
 
@@ -66,7 +66,7 @@ export default function Signup() {
 
     try {
       await signup({ phone_number: phone, password: password });
-      router.push("/dashboard");
+      router.push("/home");
     } catch (_e) {
       // Error is handled by AuthContext and will be shown in the error state
       // console.error("Signup failed:", _e);

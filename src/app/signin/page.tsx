@@ -39,7 +39,7 @@ export default function Signin() {
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace("/home");
     }
   }, [isAuthenticated, router]);
 
@@ -71,7 +71,7 @@ export default function Signin() {
 
     try {
       await login({ phone_number: phone, password });
-      router.push("/dashboard");
+      router.push("/home");
     } catch (_e) {
       // Error is handled by AuthContext
     }

@@ -38,7 +38,7 @@ export const withLazyLoading = <P extends object>(
 };
 
 // Lazy loaded pages
-export const LazyDashboardHome = lazy(() => import("@/app/dashboard/page"));
+export const LazyHome = lazy(() => import("@/app/home/page"));
 export const LazyVehiclesPage = lazy(() => import("@/app/vehicles/page"));
 export const LazyVehicleDetailPage = lazy(
   () => import("@/app/vehicles/[id]/page")
@@ -64,10 +64,7 @@ export const LazyIranLicensePlate = lazy(
 );
 
 // Wrapped components with loading states
-export const DashboardHome = withLazyLoading(
-  LazyDashboardHome,
-  "بارگذاری داشبورد..."
-);
+export const Home = withLazyLoading(LazyHome, "بارگذاری خانه...");
 export const VehiclesPage = withLazyLoading(
   LazyVehiclesPage,
   "بارگذاری خودروها..."
