@@ -67,14 +67,14 @@ export default function Home() {
       description: "مدیریت خودروها و سرویس‌ها",
       icon: <DirectionsCar />,
       color: "primary",
-      path: "/home/vehicles",
+      path: "/vehicles",
     },
     {
       title: "پروفایل",
       description: "تنظیمات و تاریخچه",
       icon: <Person />,
       color: "info",
-      path: "/home/profile",
+      path: "/profile",
     },
   ];
 
@@ -157,7 +157,7 @@ export default function Home() {
                 جزئیات
               </Button>
             }
-            onClick={() => router.push("/home/vehicles")}
+            onClick={() => router.push("/vehicles")}
           />
         </Box>
       </ResponsiveContainer>
