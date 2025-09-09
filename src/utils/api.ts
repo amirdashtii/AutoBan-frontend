@@ -68,8 +68,19 @@ export const apiRequest = async <T>(
 
   let response = await fetch(url, config);
 
-  // If 401 and not already a refresh request, try to refresh token
+  // If 401 and not already a refresh request, decide based on token presence
   if (response.status === 401 && !endpoint.includes("/auth/refresh")) {
+    const hasAuthToken =
+      typeof document !== "undefined" &&
+      (document.cookie.includes("auth-token=") ||
+        document.cookie.includes("refresh-token="));
+
+    // If there's no auth/refresh token, user is simply unauthenticated
+    if (!hasAuthToken) {
+      // Throw a sentinel error that callers can interpret as non-fatal unauthenticated
+      throw new Error("UNAUTHENTICATED");
+    }
+
     try {
       // Try to refresh token
       const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -91,11 +102,11 @@ export const apiRequest = async <T>(
           throw new Error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
         }
       } else {
-        // Refresh failed - let it fall through to normal error handling
-        throw new Error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
+        // Refresh failed
+        throw new Error("SESSION_EXPIRED");
       }
     } catch (refreshError) {
-      throw new Error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
+      throw new Error("SESSION_EXPIRED");
     }
   }
 

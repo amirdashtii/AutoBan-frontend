@@ -9,12 +9,25 @@ export function useCurrentUser() {
   return useQuery({
     queryKey: queryKeys.auth.user,
     queryFn: async (): Promise<User> => {
-      return await apiRequest<User>("/users/me");
+      try {
+        return await apiRequest<User>("/users/me");
+      } catch (e: any) {
+        // Treat unauthenticated (no token) as null user without surfacing a UI error
+        if (typeof e?.message === "string" && e.message === "UNAUTHENTICATED") {
+          return null as unknown as User;
+        }
+        // Surface real errors (including session expired)
+        throw e;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error: any) => {
-      // Don't retry if it's an auth error (401)
-      if (error?.message?.includes("منقضی شده")) {
+      // Don't retry if it's session expired or unauthenticated sentinel
+      if (
+        error?.message === "SESSION_EXPIRED" ||
+        error?.message === "UNAUTHENTICATED" ||
+        error?.message?.includes("منقضی شده")
+      ) {
         return false;
       }
       return failureCount < 3;
@@ -130,6 +143,12 @@ export function useIsAuthenticated() {
     isAuthenticated: !!user && !error,
     user,
     isLoading,
-    error,
+    // Hide the generic error if it's just unauthenticated; show a clean message if session expired
+    error:
+      error?.message === "UNAUTHENTICATED"
+        ? null
+        : error?.message === "SESSION_EXPIRED"
+        ? "نشست شما منقضی شده است، لطفاً دوباره وارد شوید"
+        : error,
   };
 }

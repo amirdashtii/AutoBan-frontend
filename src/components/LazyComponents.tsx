@@ -45,12 +45,6 @@ export const LazyVehiclesPage = lazy(
 export const LazyVehicleDetailPage = lazy(
   () => import("@/app/dashboard/vehicles/[id]/page")
 );
-export const LazyServicesPage = lazy(
-  () => import("@/app/dashboard/services/page")
-);
-export const LazyHistoryPage = lazy(
-  () => import("@/app/dashboard/history/page")
-);
 export const LazyProfilePage = lazy(
   () => import("@/app/dashboard/profile/page")
 );
@@ -85,14 +79,6 @@ export const VehiclesPage = withLazyLoading(
 export const VehicleDetailPage = withLazyLoading(
   LazyVehicleDetailPage,
   "بارگذاری جزئیات خودرو..."
-);
-export const ServicesPage = withLazyLoading(
-  LazyServicesPage,
-  "بارگذاری سرویس‌ها..."
-);
-export const HistoryPage = withLazyLoading(
-  LazyHistoryPage,
-  "بارگذاری تاریخچه..."
 );
 export const ProfilePage = withLazyLoading(
   LazyProfilePage,

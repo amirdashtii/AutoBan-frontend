@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Authenticated user on public page → redirect to dashboard
       router.replace("/dashboard");
     } else if (!isAuthenticated && isProtectedPage) {
-      // Unauthenticated user on protected page → redirect to signin
+      // Unauthenticated user on protected page → redirect to signin without flashing global error
       router.replace("/signin");
     }
   }, [isAuthenticated, isLoading, pathname, router]);

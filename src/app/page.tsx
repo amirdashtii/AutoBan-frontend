@@ -14,8 +14,9 @@ export default function HomePage() {
     if (!isLoading) {
       if (isAuthenticated) {
         router.replace("/dashboard");
+      } else {
+        router.replace("/signin");
       }
-      // Don't redirect to signin here, let AuthContext handle it
     }
   }, [isAuthenticated, isLoading, router]);
 

@@ -38,10 +38,7 @@ export default function Signin() {
 
   // Redirect if already authenticated
   React.useEffect(() => {
-    // Only check authentication if user has auth token
-    const hasAuthToken = document.cookie.includes("auth-token=");
-
-    if (hasAuthToken && isAuthenticated) {
+    if (isAuthenticated) {
       router.replace("/dashboard");
     }
   }, [isAuthenticated, router]);
