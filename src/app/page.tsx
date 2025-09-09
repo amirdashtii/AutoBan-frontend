@@ -13,7 +13,7 @@ export default function HomePage() {
     // Only redirect after auth state is determined and not loading
     if (!isLoading) {
       if (isAuthenticated) {
-        router.replace("/dashboard");
+        router.replace("/home");
       } else {
         router.replace("/signin");
       }

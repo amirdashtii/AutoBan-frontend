@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const currentPath = pathname;
     const isPublicPage = ["/signin", "/signup", "/"].includes(currentPath);
-    const isProtectedPage = currentPath.startsWith("/dashboard");
+    const isProtectedPage = currentPath.startsWith("/home") || currentPath.startsWith("/vehicles") || currentPath.startsWith("/profile");
 
     if (isAuthenticated && isPublicPage) {
       // Authenticated user on public page → redirect to dashboard

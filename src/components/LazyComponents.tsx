@@ -39,15 +39,11 @@ export const withLazyLoading = <P extends object>(
 
 // Lazy loaded pages
 export const LazyDashboardHome = lazy(() => import("@/app/dashboard/page"));
-export const LazyVehiclesPage = lazy(
-  () => import("@/app/dashboard/vehicles/page")
-);
+export const LazyVehiclesPage = lazy(() => import("@/app/vehicles/page"));
 export const LazyVehicleDetailPage = lazy(
-  () => import("@/app/dashboard/vehicles/[id]/page")
+  () => import("@/app/vehicles/[id]/page")
 );
-export const LazyProfilePage = lazy(
-  () => import("@/app/dashboard/profile/page")
-);
+export const LazyProfilePage = lazy(() => import("@/app/profile/page"));
 export const LazySigninPage = lazy(() => import("@/app/signin/page"));
 export const LazySignupPage = lazy(() => import("@/app/signup/page"));
 

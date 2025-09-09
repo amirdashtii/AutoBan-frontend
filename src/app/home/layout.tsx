@@ -7,7 +7,7 @@ import BottomNavigationComponent, {
 import { AppShell } from "@/components/layout";
 import { useRouter, usePathname } from "next/navigation";
 
-export default function DashboardLayout({
+export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,22 +16,22 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   const getCurrentTab = (): NavigationTab => {
-    if (pathname === "/dashboard") return "home";
-    if (pathname.startsWith("/dashboard/vehicles")) return "vehicles";
-    if (pathname.startsWith("/dashboard/profile")) return "profile";
+    if (pathname === "/home") return "home";
+    if (pathname.startsWith("/home/vehicles")) return "vehicles";
+    if (pathname.startsWith("/home/profile")) return "profile";
     return "home";
   };
 
   const handleTabChange = (tab: NavigationTab) => {
     switch (tab) {
       case "home":
-        router.push("/dashboard");
+        router.push("/home");
         break;
       case "vehicles":
-        router.push("/dashboard/vehicles");
+        router.push("/home/vehicles");
         break;
       case "profile":
-        router.push("/dashboard/profile");
+        router.push("/home/profile");
         break;
     }
   };

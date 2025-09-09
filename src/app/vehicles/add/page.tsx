@@ -263,7 +263,7 @@ export default function AddVehicle() {
       await vehicleService.createUserVehicle(requestData);
 
       // Success - redirect to vehicles list
-      router.push("/dashboard/vehicles");
+      router.push("/vehicles");
     } catch (error: any) {
       console.error("Error saving vehicle:", error);
 

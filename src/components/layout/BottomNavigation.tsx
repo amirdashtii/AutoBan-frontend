@@ -57,11 +57,7 @@ export default function BottomNavigationComponent({
         onChange={(_, newValue) => onTabChange(newValue)}
         showLabels
       >
-        <BottomNavigationAction
-          label="داشبورد"
-          value="home"
-          icon={<HomeIcon />}
-        />
+        <BottomNavigationAction label="خانه" value="home" icon={<HomeIcon />} />
         <BottomNavigationAction
           label="خودروها"
           value="vehicles"

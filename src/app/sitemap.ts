@@ -9,10 +9,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/signup",
     "/forgot-password",
     "/dashboard",
-    "/dashboard/vehicles",
-    "/dashboard/services",
-    "/dashboard/history",
-    "/dashboard/profile",
+    "/vehicles",
+    "/profile",
   ];
 
   const now = new Date().toISOString();
@@ -24,4 +22,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.7,
   }));
 }
- 

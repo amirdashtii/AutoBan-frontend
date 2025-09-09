@@ -285,7 +285,7 @@ export default function Vehicles() {
           leftActions={[
             <AddButton
               key="add-vehicle"
-              onClick={() => router.push("/dashboard/vehicles/add")}
+              onClick={() => router.push("/vehicles/add")}
               variant="icon"
               size="small"
             />,
@@ -567,7 +567,7 @@ export default function Vehicles() {
                                 resetSwipeState(Number(id));
                               }
                             });
-                            router.push(`/dashboard/vehicles/${vehicle.id}`);
+                            router.push(`/vehicles/${vehicle.id}`);
                           }}
                         />
                       </Box>

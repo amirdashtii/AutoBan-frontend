@@ -89,7 +89,7 @@ export default function VehicleDetails() {
             <EditButton
               key="edit"
               onClick={() =>
-                router.push(`/dashboard/vehicles/${vehicleId}/edit`)
+                router.push(`/vehicles/${vehicleId}/edit`)
               }
               variant="text"
               size="small"

@@ -24,7 +24,7 @@ import {
 import { useResponsive } from "@/components/ui/ResponsiveContainer";
 import ColorModeSelect from "@/theme/ColorModeSelect";
 
-export default function DashboardHome() {
+export default function Home() {
   const router = useRouter();
 
   type QuickActionColor = "primary" | "success" | "info" | "warning";
@@ -67,14 +67,14 @@ export default function DashboardHome() {
       description: "مدیریت خودروها و سرویس‌ها",
       icon: <DirectionsCar />,
       color: "primary",
-      path: "/dashboard/vehicles",
+      path: "/home/vehicles",
     },
     {
       title: "پروفایل",
       description: "تنظیمات و تاریخچه",
       icon: <Person />,
       color: "info",
-      path: "/dashboard/profile",
+      path: "/home/profile",
     },
   ];
 
@@ -84,7 +84,7 @@ export default function DashboardHome() {
     <AppContainer
       header={
         <Header
-          title="داشبورد AutoBan"
+          title="خانه AutoBan"
           subtitle="مدیریت خودرو و سرویس"
           actions={[<ColorModeSelect key="theme" size="small" />]}
         />
@@ -157,7 +157,7 @@ export default function DashboardHome() {
                 جزئیات
               </Button>
             }
-            onClick={() => router.push("/dashboard/vehicles")}
+            onClick={() => router.push("/home/vehicles")}
           />
         </Box>
       </ResponsiveContainer>
