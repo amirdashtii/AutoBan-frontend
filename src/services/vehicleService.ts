@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import { apiRequest } from "@/utils/api";
 
 export interface VehicleType {
   id: number;
@@ -114,8 +115,8 @@ export interface UserVehicleResponse {
 export const vehicleService = {
   // دریافت hierarchy کامل
   async getCompleteHierarchy(): Promise<VehicleHierarchy> {
-    const response = await apiClient.get("/vehicles/hierarchy");
-    return response.data;
+    // مسیر داخلی Next برای یکپارچگی با Hook ها و حل CORS/Auth
+    return await apiRequest<VehicleHierarchy>("/vehicles/hierarchy");
   },
 
   // دریافت انواع خودرو

@@ -46,6 +46,7 @@ import {
   VehicleModel,
   VehicleGeneration,
 } from "@/services/vehicleService";
+import { useVehicleHierarchy } from "@/hooks/useVehicles";
 
 const steps = ["انتخاب وسیله نقلیه", "اطلاعات تکمیلی", "نهایی کردن"];
 
@@ -78,6 +79,8 @@ export default function AddVehicle() {
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
   const [generations, setGenerations] = useState<VehicleGeneration[]>([]);
+  const { data: hierarchy, isLoading: isHierarchyLoading } =
+    useVehicleHierarchy();
 
   // Form Data
   const [formData, setFormData] = useState<VehicleFormData>({
@@ -94,26 +97,27 @@ export default function AddVehicle() {
     purchaseDate: "",
   });
 
-  // Load vehicle types on component mount
+  // Populate vehicle types from hierarchy once available
   useEffect(() => {
-    loadVehicleTypes();
-  }, []);
-
-  const loadVehicleTypes = async () => {
-    try {
-      setLoading(true);
-      const type = await vehicleService.getVehicleTypes();
-      setVehicleTypes(type);
-    } catch (error) {
-      console.error("Error loading vehicle type:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!hierarchy) return;
+    const types: VehicleType[] = hierarchy.vehicle_types.map((t) => ({
+      id: t.id,
+      name_fa: t.name_fa,
+      name_en: t.name_en,
+    }));
+    setVehicleTypes(types);
+  }, [hierarchy]);
 
   const loadBrands = async (typeId: number) => {
     try {
-      const brandsData = await vehicleService.getBrandsByType(typeId);
+      if (!hierarchy) return;
+      const typeNode = hierarchy.vehicle_types.find((t) => t.id === typeId);
+      const brandsData: VehicleBrand[] = (typeNode?.brands || []).map((b) => ({
+        id: b.id,
+        vehicle_type_id: typeId,
+        name_fa: b.name_fa,
+        name_en: b.name_en,
+      }));
       setBrands(brandsData);
       setModels([]);
       setGenerations([]);
@@ -130,7 +134,15 @@ export default function AddVehicle() {
 
   const loadModels = async (typeId: number, brandId: number) => {
     try {
-      const modelsData = await vehicleService.getModelsByBrand(typeId, brandId);
+      if (!hierarchy) return;
+      const typeNode = hierarchy.vehicle_types.find((t) => t.id === typeId);
+      const brandNode = typeNode?.brands.find((b) => b.id === brandId);
+      const modelsData: VehicleModel[] = (brandNode?.models || []).map((m) => ({
+        id: m.id,
+        brand_id: brandId,
+        name_fa: m.name_fa,
+        name_en: m.name_en,
+      }));
       setModels(modelsData);
       setGenerations([]);
       setFormData((prev) => ({
@@ -149,11 +161,29 @@ export default function AddVehicle() {
     modelId: number
   ) => {
     try {
-      const generationsData = await vehicleService.getGenerationsByModel(
-        typeId,
-        brandId,
-        modelId
-      );
+      if (!hierarchy) return;
+      const typeNode = hierarchy.vehicle_types.find((t) => t.id === typeId);
+      const brandNode = typeNode?.brands.find((b) => b.id === brandId);
+      const modelNode = brandNode?.models.find((m) => m.id === modelId);
+      const generationsData: VehicleGeneration[] = (
+        modelNode?.generations || []
+      ).map((g) => ({
+        id: g.id,
+        model_id: modelId,
+        name_fa: g.name_fa,
+        name_en: g.name_en,
+        start_year: (g as any).start_year,
+        end_year: (g as any).end_year,
+        body_style_fa: (g as any).body_style_fa,
+        body_style_en: (g as any).body_style_en,
+        engine: (g as any).engine,
+        engine_volume: (g as any).engine_volume,
+        cylinders: (g as any).cylinders,
+        drivetrain_fa: (g as any).drivetrain_fa,
+        drivetrain_en: (g as any).drivetrain_en,
+        gearbox: (g as any).gearbox,
+        fuel_type: (g as any).fuel_type,
+      }));
       setGenerations(generationsData);
       setFormData((prev) => ({
         ...prev,

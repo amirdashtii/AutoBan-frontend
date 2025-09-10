@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePrefetchVehicleHierarchy } from "@/hooks/useVehicles";
 import { useAuth } from "@/hooks/useAuth";
 
 /**
@@ -10,17 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
  */
 export default function DataPrefetcher() {
   const { isAuthenticated } = useAuth();
-  const prefetchVehicleHierarchy = usePrefetchVehicleHierarchy();
 
-  useEffect(() => {
-    // Prefetch vehicle hierarchy data early as it's used frequently
-    // and rarely changes
-    const timer = setTimeout(() => {
-      prefetchVehicleHierarchy();
-    }, 1000); // Delay to not block initial render
-
-    return () => clearTimeout(timer);
-  }, [prefetchVehicleHierarchy]);
+  // Prefetching disabled: hierarchy data will be fetched only where needed
 
   useEffect(() => {
     // Prefetch user-specific data when authenticated
