@@ -158,8 +158,11 @@ export const vehicleService = {
   async createUserVehicle(
     data: CreateUserVehicleRequest
   ): Promise<UserVehicleResponse> {
-    const response = await apiClient.post("/user/vehicles", data);
-    return response.data;
+    const response = await apiRequest<UserVehicleResponse>("/user/vehicles", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return response;
   },
 
   // دریافت لیست خودروهای کاربر
