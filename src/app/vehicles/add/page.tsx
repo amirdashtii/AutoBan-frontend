@@ -384,7 +384,7 @@ export default function AddVehicle() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   <SectionHeader title="انتخاب وسیله نقلیه" />
 
-                  {loading ? (
+                  {loading || isHierarchyLoading ? (
                     <Box
                       sx={{ display: "flex", justifyContent: "center", py: 4 }}
                     >

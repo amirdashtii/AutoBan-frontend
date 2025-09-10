@@ -172,7 +172,7 @@ export function usePrefetchVehicleHierarchy() {
       queryKey: queryKeys.vehicles.hierarchy,
       queryFn: async (): Promise<CompleteVehicleHierarchy> => {
         return await apiRequest<CompleteVehicleHierarchy>(
-          "/api/vehicles/hierarchy"
+          "/vehicles/hierarchy"
         );
       },
       staleTime: 30 * 60 * 1000,
