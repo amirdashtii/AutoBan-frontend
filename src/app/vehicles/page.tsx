@@ -39,7 +39,9 @@ import {
   AddButton,
 } from "@/components/ui";
 import { useResponsive } from "@/components/ui/ResponsiveContainer";
-import { vehicleService, UserVehicleResponse } from "@/services/vehicleService";
+import { vehicleService } from "@/services/vehicleService";
+import { useUserVehicles, useDeleteUserVehicle } from "@/hooks/useVehicles";
+import { UserVehicle } from "@/types/api";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,19 +69,13 @@ export default function Vehicles() {
   const router = useRouter();
   const { isMobile } = useResponsive();
 
-  // Fetch user vehicles from backend
+  // Fetch user vehicles using hook (goes through internal API route)
   const {
-    data: vehiclesData,
+    data: vehicles = [],
     isLoading: vehiclesLoading,
     error: vehiclesError,
     refetch: refetchVehicles,
-  } = useQuery({
-    queryKey: ["userVehicles"],
-    queryFn: vehicleService.getUserVehicles,
-    enabled: !!user,
-  });
-
-  const vehicles = vehiclesData || [];
+  } = useUserVehicles();
 
   // State management
   const [tabValue, setTabValue] = useState(0);
@@ -90,9 +86,11 @@ export default function Vehicles() {
 
   // Delete functionality
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [vehicleToDelete, setVehicleToDelete] =
-    useState<UserVehicleResponse | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<UserVehicle | null>(
+    null
+  );
+
+  const deleteVehicleMutation = useDeleteUserVehicle();
 
   // Swipe states
   const [swipeStates, setSwipeStates] = useState<
@@ -229,7 +227,7 @@ export default function Vehicles() {
   );
 
   // Delete handlers
-  const handleDeleteClick = (vehicle: UserVehicleResponse) => {
+  const handleDeleteClick = (vehicle: UserVehicle) => {
     setVehicleToDelete(vehicle);
     setDeleteDialogOpen(true);
     // Reset swipe state
@@ -242,17 +240,13 @@ export default function Vehicles() {
   const handleDeleteConfirm = async () => {
     if (!vehicleToDelete) return;
 
-    setIsDeleting(true);
     try {
-      await vehicleService.deleteUserVehicle(vehicleToDelete.id);
-      await refetchVehicles(); // Refresh the list
+      await deleteVehicleMutation.mutateAsync(vehicleToDelete.id.toString());
       setDeleteDialogOpen(false);
       setVehicleToDelete(null);
     } catch (error: any) {
       console.error("Error deleting vehicle:", error);
       // Handle error - could show toast or alert
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -411,7 +405,7 @@ export default function Vehicles() {
               </Box>
             ) : (
               <StaggeredList>
-                {vehicles.map((vehicle: UserVehicleResponse) => {
+                {vehicles.map((vehicle: UserVehicle) => {
                   const swipeState = swipeStates[vehicle.id] || {
                     x: 0,
                     showDelete: false,
@@ -624,19 +618,26 @@ export default function Vehicles() {
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleDeleteCancel} disabled={isDeleting}>
+            <Button
+              onClick={handleDeleteCancel}
+              disabled={deleteVehicleMutation.isPending}
+            >
               انصراف
             </Button>
             <Button
               onClick={handleDeleteConfirm}
               color="error"
               variant="contained"
-              disabled={isDeleting}
+              disabled={deleteVehicleMutation.isPending}
               startIcon={
-                isDeleting ? <CircularProgress size={16} /> : <Delete />
+                deleteVehicleMutation.isPending ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <Delete />
+                )
               }
             >
-              {isDeleting ? "در حال حذف..." : "حذف خودرو"}
+              {deleteVehicleMutation.isPending ? "در حال حذف..." : "حذف خودرو"}
             </Button>
           </DialogActions>
         </Dialog>
