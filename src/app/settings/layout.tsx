@@ -17,8 +17,8 @@ export default function ProfileLayout({
 
   const getCurrentTab = (): NavigationTab => {
     if (pathname.startsWith("/vehicles")) return "vehicles";
-    if (pathname.startsWith("/profile")) return "profile";
-    return "profile";
+    if (pathname.startsWith("/settings")) return "settings";
+    return "settings";
   };
 
   const handleTabChange = (tab: NavigationTab) => {
@@ -29,8 +29,8 @@ export default function ProfileLayout({
       case "vehicles":
         router.push("/vehicles");
         break;
-      case "profile":
-        router.push("/profile");
+      case "settings":
+        router.push("/settings");
         break;
     }
   };

@@ -43,7 +43,7 @@ export const LazyVehiclesPage = lazy(() => import("@/app/vehicles/page"));
 export const LazyVehicleDetailPage = lazy(
   () => import("@/app/vehicles/[id]/page")
 );
-export const LazyProfilePage = lazy(() => import("@/app/profile/page"));
+export const LazySettingsPage = lazy(() => import("@/app/settings/page"));
 export const LazySigninPage = lazy(() => import("@/app/signin/page"));
 export const LazySignupPage = lazy(() => import("@/app/signup/page"));
 
@@ -73,9 +73,9 @@ export const VehicleDetailPage = withLazyLoading(
   LazyVehicleDetailPage,
   "بارگذاری جزئیات خودرو..."
 );
-export const ProfilePage = withLazyLoading(
-  LazyProfilePage,
-  "بارگذاری پروفایل..."
+export const SettingsPage = withLazyLoading(
+  LazySettingsPage,
+  "بارگذاری تنظیمات..."
 );
 export const SigninPage = withLazyLoading(
   LazySigninPage,

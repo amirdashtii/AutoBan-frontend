@@ -70,11 +70,11 @@ export default function Home() {
       path: "/vehicles",
     },
     {
-      title: "پروفایل",
-      description: "تنظیمات و تاریخچه",
+      title: "تنظیمات",
+      description: "تنظیمات و پروفایل",
       icon: <Person />,
       color: "info",
-      path: "/profile",
+      path: "/settings",
     },
   ];
 

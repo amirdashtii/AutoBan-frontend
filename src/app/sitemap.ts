@@ -10,7 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/forgot-password",
     "/home",
     "/vehicles",
-    "/profile",
+    "/settings",
   ];
 
   const now = new Date().toISOString();

@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute =
     pathname.startsWith("/home") ||
     pathname.startsWith("/vehicles") ||
-    pathname.startsWith("/profile");
+    pathname.startsWith("/settings");
 
   // If user doesn't have token and trying to access protected routes, redirect to signin
   if (!token && isProtectedRoute) {
@@ -20,5 +20,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/home/:path*", "/vehicles/:path*", "/profile/:path*"],
+  matcher: ["/home/:path*", "/vehicles/:path*", "/settings/:path*"],
 };

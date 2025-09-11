@@ -23,7 +23,7 @@ export default function ListItemCard({
       variant="outlined"
       sx={{
         p: 1.5,
-        borderRadius: 2,
+        borderRadius: 1,
         cursor: onClick ? "pointer" : "default",
         "&:hover": { bgcolor: "action.hover" },
       }}
@@ -53,4 +53,3 @@ export default function ListItemCard({
     </Paper>
   );
 }
- 

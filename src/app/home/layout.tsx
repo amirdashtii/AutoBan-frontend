@@ -18,7 +18,7 @@ export default function HomeLayout({
   const getCurrentTab = (): NavigationTab => {
     if (pathname === "/home") return "home";
     if (pathname.startsWith("/vehicles")) return "vehicles";
-    if (pathname.startsWith("/profile")) return "profile";
+    if (pathname.startsWith("/settings")) return "settings";
     return "home";
   };
 
@@ -30,8 +30,8 @@ export default function HomeLayout({
       case "vehicles":
         router.push("/vehicles");
         break;
-      case "profile":
-        router.push("/profile");
+      case "settings":
+        router.push("/settings");
         break;
     }
   };

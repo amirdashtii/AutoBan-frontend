@@ -6,11 +6,6 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { useColorScheme } from "./AppTheme";
-import {
-  Brightness4,
-  Brightness7,
-  SettingsBrightness,
-} from "@mui/icons-material";
 
 interface ColorModeSelectProps {
   size?: "small" | "medium";
@@ -32,18 +27,9 @@ export default function ColorModeSelect({
   return (
     <FormControl size={size}>
       <Select value={currentMode} onChange={handleChange}>
-        <MenuItem value="system">
-          <SettingsBrightness sx={{ mr: 1, fontSize: 18 }} />
-          سیستم
-        </MenuItem>
-        <MenuItem value="light">
-          <Brightness7 sx={{ mr: 1, fontSize: 18 }} />
-          روشن
-        </MenuItem>
-        <MenuItem value="dark">
-          <Brightness4 sx={{ mr: 1, fontSize: 18 }} />
-          تاریک
-        </MenuItem>
+        <MenuItem value="system">سیستم</MenuItem>
+        <MenuItem value="light">روشن</MenuItem>
+        <MenuItem value="dark">تاریک</MenuItem>
       </Select>
     </FormControl>
   );

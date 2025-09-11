@@ -17,7 +17,7 @@ export default function VehiclesLayout({
 
   const getCurrentTab = (): NavigationTab => {
     if (pathname.startsWith("/vehicles")) return "vehicles";
-    if (pathname.startsWith("/profile")) return "profile";
+    if (pathname.startsWith("/settings")) return "settings";
     return "vehicles";
   };
 
@@ -29,8 +29,8 @@ export default function VehiclesLayout({
       case "vehicles":
         router.push("/vehicles");
         break;
-      case "profile":
-        router.push("/profile");
+      case "settings":
+        router.push("/settings");
         break;
     }
   };

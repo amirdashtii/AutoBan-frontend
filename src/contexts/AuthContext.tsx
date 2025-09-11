@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const isProtectedPage =
       currentPath.startsWith("/home") ||
       currentPath.startsWith("/vehicles") ||
-      currentPath.startsWith("/profile");
+      currentPath.startsWith("/settings");
 
     if (isAuthenticated && isPublicPage) {
       // Authenticated user on public page → redirect to home

@@ -27,7 +27,7 @@ const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
   },
 }));
 
-export type NavigationTab = "home" | "vehicles" | "profile";
+export type NavigationTab = "home" | "vehicles" | "settings";
 
 interface BottomNavigationProps {
   currentTab: NavigationTab;
@@ -64,8 +64,8 @@ export default function BottomNavigationComponent({
           icon={<VehicleIcon />}
         />
         <BottomNavigationAction
-          label="پروفایل"
-          value="profile"
+          label="تنظیمات"
+          value="settings"
           icon={<ProfileIcon />}
         />
       </StyledBottomNavigation>
