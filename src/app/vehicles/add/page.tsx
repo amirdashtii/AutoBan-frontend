@@ -297,16 +297,11 @@ export default function AddVehicle() {
     } catch (error: any) {
       console.error("Error saving vehicle:", error);
 
-      // استخراج پیام خطای فارسی از بک‌اند
-      let errorMessage = "خطا در ذخیره وسیله نقلیه. لطفاً دوباره تلاش کنید.";
-
-      if (error.response?.data) {
-        const backendError = error.response.data;
-        // بررسی ساختارهای مختلف پیام خطا از بک‌اند
-        if (backendError.error?.message?.persian) {
-          errorMessage = backendError.error.message.persian;
-        }
-      }
+      // apiRequest throws Error(message) already parsed from backend
+      const errorMessage =
+        typeof error?.message === "string" && error.message.trim().length > 0
+          ? error.message
+          : "خطا در ذخیره وسیله نقلیه. لطفاً دوباره تلاش کنید.";
 
       setErrors({
         submit: errorMessage,
@@ -502,8 +497,7 @@ export default function AddVehicle() {
                                 key={generation.id}
                                 value={generation.id}
                               >
-                                {generation.name_fa} ({generation.start_year} -{" "}
-                                {generation.end_year || "فعلی"})
+                                {generation.name_fa}
                               </MenuItem>
                             ))}
                           </Select>
@@ -621,64 +615,129 @@ export default function AddVehicle() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   <SectionHeader title="اطلاعات تکمیلی" />
 
-                  <TextField
-                    fullWidth
-                    label="نام وسیله نقلیه *"
-                    placeholder="مثال: پژو 206 من"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    error={!!errors.name}
-                    helperText={errors.name}
-                  />
-
                   <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="سال تولید"
-                        type="number"
-                        slotProps={{
-                          htmlInput: {
-                            min: 1000,
-                            max: new Date().getFullYear(),
-                          },
-                        }}
-                        value={formData.productionYear || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "productionYear",
-                            parseInt(e.target.value) || null
-                          )
-                        }
-                        error={!!errors.productionYear}
-                        helperText={errors.productionYear}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="رنگ خودرو"
-                        value={formData.color}
-                        onChange={(e) =>
-                          handleInputChange("color", e.target.value)
-                        }
-                        placeholder="مثال: قرمز"
-                      />
-                    </Grid>
-                  </Grid>
+                    <TextField
+                      fullWidth
+                      label="نام وسیله نقلیه *"
+                      placeholder="مثال: پژو 206 من"
+                      value={formData.name}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                      error={!!errors.name}
+                      helperText={errors.name}
+                    />
 
-                  <Box>
-                    <Typography variant="subtitle2" gutterBottom>
-                      پلاک {formData.selectedType?.name_fa || "خودرو"}
-                    </Typography>
-                    {formData.selectedType?.name_fa === "موتورسیکلت" ? (
-                      // Motorcycle license plate format (2 rows)
-                      <Box sx={{ mb: 2 }} dir="ltr">
-                        <Grid container spacing={1} sx={{ mb: 1 }}>
-                          <Grid size={12}>
+                    <TextField
+                      fullWidth
+                      label="کیلومتر فعلی"
+                      type="number"
+                      value={formData.currentMileage || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "currentMileage",
+                          parseInt(e.target.value) || null
+                        )
+                      }
+                      error={!!errors.currentMileage}
+                      helperText={errors.currentMileage}
+                      slotProps={{
+                        htmlInput: { min: 0 },
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              کیلومتر
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="سال تولید"
+                      type="number"
+                      slotProps={{
+                        htmlInput: {
+                          min: 1000,
+                          max: new Date().getFullYear(),
+                        },
+                      }}
+                      value={formData.productionYear || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "productionYear",
+                          parseInt(e.target.value) || null
+                        )
+                      }
+                      error={!!errors.productionYear}
+                      helperText={errors.productionYear}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="رنگ خودرو"
+                      value={formData.color}
+                      onChange={(e) =>
+                        handleInputChange("color", e.target.value)
+                      }
+                      placeholder="مثال: قرمز"
+                    />
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        پلاک {formData.selectedType?.name_fa || "خودرو"}
+                      </Typography>
+                      {formData.selectedType?.name_fa === "موتورسیکلت" ? (
+                        // Motorcycle license plate format (2 rows)
+                        <Box sx={{ mb: 2 }} dir="ltr">
+                          <Grid container spacing={1} sx={{ mb: 1 }}>
+                            <Grid size={12}>
+                              <TextField
+                                fullWidth
+                                label="شماره بالا (۳ رقم)"
+                                value={
+                                  formData.licensePlate.split("-")[0] || ""
+                                }
+                                onChange={(e) => {
+                                  const parts =
+                                    formData.licensePlate.split("-");
+                                  parts[0] = e.target.value;
+                                  const newPlate = parts.join("-");
+                                  handleInputChange("licensePlate", newPlate);
+                                }}
+                                slotProps={{ htmlInput: { maxLength: 3 } }}
+                                placeholder="123"
+                              />
+                            </Grid>
+                          </Grid>
+                          <Grid container spacing={1}>
+                            <Grid size={12}>
+                              <TextField
+                                fullWidth
+                                label="شماره پایین"
+                                value={
+                                  formData.licensePlate.split("-")[1] || ""
+                                }
+                                onChange={(e) => {
+                                  const parts =
+                                    formData.licensePlate.split("-");
+                                  parts[1] = e.target.value;
+                                  const newPlate = parts.join("-");
+                                  handleInputChange("licensePlate", newPlate);
+                                }}
+                                slotProps={{ htmlInput: { maxLength: 5 } }}
+                                placeholder="12345"
+                              />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ) : (
+                        // Car license plate format (4 parts in one row)
+                        <Grid container spacing={1} sx={{ mb: 2 }} dir="ltr">
+                          <Grid size={3}>
                             <TextField
                               fullWidth
-                              label="شماره بالا (۳ رقم)"
+                              label="دو رقم"
                               value={formData.licensePlate.split("-")[0] || ""}
                               onChange={(e) => {
                                 const parts = formData.licensePlate.split("-");
@@ -686,181 +745,120 @@ export default function AddVehicle() {
                                 const newPlate = parts.join("-");
                                 handleInputChange("licensePlate", newPlate);
                               }}
+                              slotProps={{ htmlInput: { maxLength: 2 } }}
+                              placeholder="12"
+                            />
+                          </Grid>
+                          <Grid size={3}>
+                            <FormControl fullWidth>
+                              <InputLabel>حرف</InputLabel>
+                              <Select
+                                value={
+                                  formData.licensePlate.split("-")[1] || ""
+                                }
+                                onChange={(e) => {
+                                  const parts =
+                                    formData.licensePlate.split("-");
+                                  parts[1] = e.target.value;
+                                  const newPlate = parts.join("-");
+                                  handleInputChange("licensePlate", newPlate);
+                                }}
+                                label="حرف"
+                              >
+                                {[
+                                  { display: "الف", value: "الف" },
+                                  { display: "ب", value: "ب" },
+                                  { display: "پ", value: "پ" },
+                                  { display: "ت", value: "ت" },
+                                  { display: "ث", value: "ث" },
+                                  { display: "ج", value: "ج" },
+                                  { display: "د", value: "د" },
+                                  { display: "ز", value: "ز" },
+                                  { display: "س", value: "س" },
+                                  { display: "ش", value: "ش" },
+                                  { display: "ص", value: "ص" },
+                                  { display: "ط", value: "ط" },
+                                  { display: "ع", value: "ع" },
+                                  { display: "ف", value: "ف" },
+                                  { display: "ق", value: "ق" },
+                                  { display: "ک", value: "ک" },
+                                  { display: "گ", value: "گ" },
+                                  { display: "ل", value: "ل" },
+                                  { display: "م", value: "م" },
+                                  { display: "ن", value: "ن" },
+                                  { display: "و", value: "و" },
+                                  { display: "ه", value: "ه" },
+                                  { display: "ی", value: "ی" },
+                                  {
+                                    display: (
+                                      <span style={{ fontSize: "2em" }}>
+                                        ♿︎
+                                      </span>
+                                    ),
+                                    value: "ژ",
+                                  },
+                                  { display: "D", value: "D" },
+                                  { display: "S", value: "S" },
+                                ].map((item) => (
+                                  <MenuItem key={item.value} value={item.value}>
+                                    {item.display}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid size={3}>
+                            <TextField
+                              fullWidth
+                              label="سه رقم"
+                              value={formData.licensePlate.split("-")[2] || ""}
+                              onChange={(e) => {
+                                const parts = formData.licensePlate.split("-");
+                                parts[2] = e.target.value;
+                                const newPlate = parts.join("-");
+                                handleInputChange("licensePlate", newPlate);
+                              }}
                               slotProps={{ htmlInput: { maxLength: 3 } }}
                               placeholder="123"
                             />
                           </Grid>
-                        </Grid>
-                        <Grid container spacing={1}>
-                          <Grid size={12}>
+                          <Grid size={3}>
                             <TextField
                               fullWidth
-                              label="شماره پایین"
-                              value={formData.licensePlate.split("-")[1] || ""}
+                              label="ایران"
+                              value={formData.licensePlate.split("-")[3] || ""}
                               onChange={(e) => {
                                 const parts = formData.licensePlate.split("-");
-                                parts[1] = e.target.value;
+                                parts[3] = e.target.value;
                                 const newPlate = parts.join("-");
                                 handleInputChange("licensePlate", newPlate);
                               }}
-                              slotProps={{ htmlInput: { maxLength: 5 } }}
-                              placeholder="12345"
+                              slotProps={{ htmlInput: { maxLength: 2 } }}
+                              placeholder="12"
                             />
                           </Grid>
                         </Grid>
-                      </Box>
-                    ) : (
-                      // Car license plate format (4 parts in one row)
-                      <Grid container spacing={1} sx={{ mb: 2 }} dir="ltr">
-                        <Grid size={3}>
-                          <TextField
-                            fullWidth
-                            label="دو رقم"
-                            value={formData.licensePlate.split("-")[0] || ""}
-                            onChange={(e) => {
-                              const parts = formData.licensePlate.split("-");
-                              parts[0] = e.target.value;
-                              const newPlate = parts.join("-");
-                              handleInputChange("licensePlate", newPlate);
-                            }}
-                            slotProps={{ htmlInput: { maxLength: 2 } }}
-                            placeholder="12"
-                          />
-                        </Grid>
-                        <Grid size={3}>
-                          <FormControl fullWidth>
-                            <InputLabel>حرف</InputLabel>
-                            <Select
-                              value={formData.licensePlate.split("-")[1] || ""}
-                              onChange={(e) => {
-                                const parts = formData.licensePlate.split("-");
-                                parts[1] = e.target.value;
-                                const newPlate = parts.join("-");
-                                handleInputChange("licensePlate", newPlate);
-                              }}
-                              label="حرف"
-                            >
-                              {[
-                                { display: "الف", value: "الف" },
-                                { display: "ب", value: "ب" },
-                                { display: "پ", value: "پ" },
-                                { display: "ت", value: "ت" },
-                                { display: "ث", value: "ث" },
-                                { display: "ج", value: "ج" },
-                                { display: "د", value: "د" },
-                                { display: "ز", value: "ز" },
-                                { display: "س", value: "س" },
-                                { display: "ش", value: "ش" },
-                                { display: "ص", value: "ص" },
-                                { display: "ط", value: "ط" },
-                                { display: "ع", value: "ع" },
-                                { display: "ف", value: "ف" },
-                                { display: "ق", value: "ق" },
-                                { display: "ک", value: "ک" },
-                                { display: "گ", value: "گ" },
-                                { display: "ل", value: "ل" },
-                                { display: "م", value: "م" },
-                                { display: "ن", value: "ن" },
-                                { display: "و", value: "و" },
-                                { display: "ه", value: "ه" },
-                                { display: "ی", value: "ی" },
-                                {
-                                  display: (
-                                    <span style={{ fontSize: "2em" }}>♿︎</span>
-                                  ),
-                                  value: "ژ",
-                                },
-                                { display: "D", value: "D" },
-                                { display: "S", value: "S" },
-                              ].map((item) => (
-                                <MenuItem key={item.value} value={item.value}>
-                                  {item.display}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid size={3}>
-                          <TextField
-                            fullWidth
-                            label="سه رقم"
-                            value={formData.licensePlate.split("-")[2] || ""}
-                            onChange={(e) => {
-                              const parts = formData.licensePlate.split("-");
-                              parts[2] = e.target.value;
-                              const newPlate = parts.join("-");
-                              handleInputChange("licensePlate", newPlate);
-                            }}
-                            slotProps={{ htmlInput: { maxLength: 3 } }}
-                            placeholder="123"
-                          />
-                        </Grid>
-                        <Grid size={3}>
-                          <TextField
-                            fullWidth
-                            label="ایران"
-                            value={formData.licensePlate.split("-")[3] || ""}
-                            onChange={(e) => {
-                              const parts = formData.licensePlate.split("-");
-                              parts[3] = e.target.value;
-                              const newPlate = parts.join("-");
-                              handleInputChange("licensePlate", newPlate);
-                            }}
-                            slotProps={{ htmlInput: { maxLength: 2 } }}
-                            placeholder="12"
-                          />
-                        </Grid>
-                      </Grid>
-                    )}
-                  </Box>
+                      )}
+                    </Box>
 
-                  <TextField
-                    fullWidth
-                    label="شماره شاسی (VIN)"
-                    value={formData.vin}
-                    onChange={(e) => handleInputChange("vin", e.target.value)}
-                    placeholder="اختیاری"
-                  />
+                    <TextField
+                      fullWidth
+                      label="شماره شاسی (VIN)"
+                      value={formData.vin}
+                      onChange={(e) => handleInputChange("vin", e.target.value)}
+                      placeholder="اختیاری"
+                    />
 
-                  <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="کیلومتر فعلی"
-                        type="number"
-                        value={formData.currentMileage || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "currentMileage",
-                            parseInt(e.target.value) || null
-                          )
-                        }
-                        error={!!errors.currentMileage}
-                        helperText={errors.currentMileage}
-                        slotProps={{
-                          htmlInput: { min: 0 },
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                کیلومتر
-                              </InputAdornment>
-                            ),
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="تاریخ خرید"
-                        type="date"
-                        slotProps={{ inputLabel: { shrink: true } }}
-                        value={formData.purchaseDate}
-                        onChange={(e) =>
-                          handleInputChange("purchaseDate", e.target.value)
-                        }
-                      />
-                    </Grid>
+                    <TextField
+                      fullWidth
+                      label="تاریخ خرید"
+                      type="date"
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      value={formData.purchaseDate}
+                      onChange={(e) =>
+                        handleInputChange("purchaseDate", e.target.value)
+                      }
+                    />
                   </Grid>
                 </Box>
               )}
