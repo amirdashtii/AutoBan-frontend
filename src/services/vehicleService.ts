@@ -167,14 +167,18 @@ export const vehicleService = {
 
   // دریافت لیست خودروهای کاربر
   async getUserVehicles(): Promise<UserVehicleResponse[]> {
-    const response = await apiClient.get("/user/vehicles");
-    return response.data.vehicles;
+    const response = await apiRequest<{ vehicles: UserVehicleResponse[] }>(
+      "/user/vehicles"
+    );
+    return response.vehicles;
   },
 
   // دریافت جزئیات خودرو
   async getUserVehicle(vehicleId: number): Promise<UserVehicleResponse> {
-    const response = await apiClient.get(`/user/vehicles/${vehicleId}`);
-    return response.data;
+    const response = await apiRequest<UserVehicleResponse>(
+      `/user/vehicles/${vehicleId}`
+    );
+    return response;
   },
 
   // ویرایش خودرو
@@ -182,12 +186,18 @@ export const vehicleService = {
     vehicleId: number,
     data: Partial<CreateUserVehicleRequest>
   ): Promise<UserVehicleResponse> {
-    const response = await apiClient.put(`/user/vehicles/${vehicleId}`, data);
-    return response.data;
+    const response = await apiRequest<UserVehicleResponse>(
+      `/user/vehicles/${vehicleId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }
+    );
+    return response;
   },
 
   // حذف خودرو
   async deleteUserVehicle(vehicleId: number): Promise<void> {
-    await apiClient.delete(`/user/vehicles/${vehicleId}`);
+    await apiRequest(`/user/vehicles/${vehicleId}`, { method: "DELETE" });
   },
 };
