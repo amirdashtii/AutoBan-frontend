@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import {
   Person,
-  Settings,
+  Settings as SettingsIcon,
   Security,
   Notifications,
   Language,
@@ -28,12 +28,13 @@ import AccountActivation from "@/components/AccountActivation";
 import LogoutDialog from "@/components/LogoutDialog";
 import {
   AppContainer,
+  Header,
   ResponsiveContainer,
   ListItemCard,
 } from "@/components/ui";
 import type { SelectChangeEvent } from "@mui/material/Select";
 
-export default function Profile() {
+export default function Settings() {
   const { user } = useAuth();
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
 
@@ -65,6 +66,7 @@ export default function Profile() {
 
   return (
     <AppContainer>
+      <Header user={user} />
       {/* Account Activation */}
       {user?.status === "Deactivated" && (
         <AccountActivation
@@ -73,56 +75,7 @@ export default function Profile() {
         />
       )}
 
-      <ResponsiveContainer padding="medium" fullHeight={false}>
-        {/* Profile Header Card */}
-        <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
-            <Badge
-              badgeContent={
-                <Box
-                  sx={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
-                    bgcolor:
-                      user?.status === "Active"
-                        ? "success.main"
-                        : "warning.main",
-                    border: "2px solid white",
-                  }}
-                />
-              }
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            >
-              <Avatar
-                sx={{
-                  width: 80,
-                  height: 80,
-                  bgcolor: "primary.main",
-                  fontSize: 32,
-                }}
-              >
-                <Person sx={{ fontSize: 40 }} />
-              </Avatar>
-            </Badge>
-            <Typography variant="h6">
-              {user?.first_name && user?.last_name
-                ? `${user.first_name} ${user.last_name}`
-                : "کاربر"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {user?.phone_number}
-            </Typography>
-          </Box>
-        </CardContent>
+      <ResponsiveContainer padding="medium" fullHeight={false}>       
 
         <List>
           <ListItemCard
@@ -158,7 +111,7 @@ export default function Profile() {
             subtitle="تغییر حالت روشن/تاریک"
             icon={
               <Box sx={{ color: "blue" }}>
-                <Settings />
+                <SettingsIcon />
               </Box>
             }
             actions={
