@@ -87,7 +87,7 @@ export const AddButton: React.FC<AddButtonProps> = ({
 export const EditButton: React.FC<EditButtonProps> = ({
   onClick,
   variant = "text",
-  size = "small",
+  size = "small", 
   disabled = false,
   loading = false,
 }) => {
