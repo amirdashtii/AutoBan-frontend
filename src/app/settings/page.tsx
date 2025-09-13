@@ -3,14 +3,10 @@
 import React, { useState } from "react";
 import {
   Box,
-  CardContent,
-  Typography,
   List,
   Switch,
   FormControl,
   Select,
-  Avatar,
-  Badge,
   MenuItem,
 } from "@mui/material";
 import {
@@ -22,6 +18,7 @@ import {
   Logout,
   ChevronLeft as ChevronLeftIcon,
 } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import ColorModeSelect from "@/theme/ColorModeSelect";
 import AccountActivation from "@/components/AccountActivation";
@@ -36,6 +33,7 @@ import type { SelectChangeEvent } from "@mui/material/Select";
 
 export default function Settings() {
   const { user } = useAuth();
+  const router = useRouter();
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
 
   // Mock settings
@@ -87,7 +85,7 @@ export default function Settings() {
               </Box>
             }
             actions={<ChevronLeftIcon fontSize="large" />}
-            // onClick={() => router.push(action.path)}
+            onClick={() => router.push("/settings/profile")}
           />
         </List>
         <List>
