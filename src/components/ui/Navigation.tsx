@@ -9,17 +9,8 @@ import {
   Avatar,
   Badge,
   Button,
-  useTheme,
-  alpha,
-  Slide,
-  useScrollTrigger,
-  IconButton,
 } from "@mui/material";
-import {
-  ChevronRight as ChevronRightIcon,
-  Search as SearchIcon,
-  Person,
-} from "@mui/icons-material";
+import { ChevronRight as ChevronRightIcon, Person } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
 // Header Component
@@ -50,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   onBackClick,
 }) => {
   const router = useRouter();
-  const [scrolled, setScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   const handleBackClick = () => {
     if (onBackClick) {
@@ -67,24 +58,16 @@ export const Header: React.FC<HeaderProps> = ({
     const handleScroll = () => {
       const scrollTop =
         window.pageYOffset || document.documentElement.scrollTop;
-      // Smooth transition threshold - starts transitioning at 80px
-      setScrolled(scrollTop > 80);
+      setScrollY(scrollTop);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [user]);
 
-  // Common animation settings
-  const slideProps = {
-    appear: false,
-    direction: "down" as const,
-    timeout: 500,
-    easing: {
-      enter: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      exit: "cubic-bezier(0.55, 0.06, 0.68, 0.19)",
-    },
-  };
+  // Calculate transition progress (0 to 1) - complete transition in 80px
+  const transitionProgress = Math.min(scrollY / 20, 1);
+  const isCompact = transitionProgress > 0.8;
 
   // Common back button component
   const BackButton = () =>
@@ -153,6 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
       {subtitle && (
         <Typography
           variant="caption"
+          color="text.primary"
           sx={{
             color: "text.secondary",
             lineHeight: 1,
@@ -192,42 +176,66 @@ export const Header: React.FC<HeaderProps> = ({
         ? `${user.first_name} ${user.last_name}`
         : typeof title === "string"
         ? title
-        : "صفحه";
+        : "";
+
+    // Calculate dynamic values based on scroll
+    const headerHeight = 180 - transitionProgress * 116; // 180 to 64px
+    const avatarSize = 80 - transitionProgress * 40; // 80px to 40px
+    const avatarOpacity = 1 - transitionProgress; // Fade out avatar
+    const textScale = 1 - transitionProgress * 0.3; // Scale down text
+
     return (
       <>
         {/* Collapsible Header */}
-        <Slide {...slideProps} in={!scrolled}>
-          <AppBar
+        <AppBar
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+            backgroundColor: "background.default",
+            borderColor: "divider",
+            borderRadius: 0,
+            boxShadow: "none",
+            height: headerHeight,
+            transition: "height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+          }}
+        >
+          <Toolbar
             sx={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1100,
-              backgroundColor: "background.default",
-              borderColor: "divider",
+              display: "flex",
+              alignItems: transitionProgress > 0.5 ? "center" : "flex-start",
+              minHeight: headerHeight,
               pt: 2,
-              pb: 2,
-              transition: "all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+              pb: transitionProgress > 0.5 ? 1 : 2,
+              transition: "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
             }}
           >
-            <Toolbar
+            <RightZone />
+
+            {/* Profile Info */}
+            <Box
               sx={{
                 display: "flex",
-                alignItems: "start",
-                minHeight: 64,
+                flexDirection: transitionProgress > 0.5 ? "row" : "column",
+                alignItems: "center",
+                gap: transitionProgress > 0.5 ? 1 : 2,
+                px: 2,
+                flex: 1,
+                justifyContent: "center",
+                transform: `scale(${textScale})`,
+                transition:
+                  "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
               }}
             >
-              <RightZone />
-
-              {/* Profile Info */}
+              {/* Avatar with fade out effect */}
               <Box
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 2,
-                  px: 2,
+                  opacity: avatarOpacity,
+                  display: transitionProgress > 0.5 ? "none" : "block",
+                  transition:
+                    "opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                 }}
               >
                 {user ? (
@@ -251,111 +259,68 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <Avatar
                       sx={{
-                        width: 80,
-                        height: 80,
+                        width: avatarSize,
+                        height: avatarSize,
                         bgcolor: "primary.main",
-                        fontSize: 32,
+                        fontSize: avatarSize * 0.4,
+                        transition:
+                          "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                       }}
                     >
-                      <Person sx={{ fontSize: 40 }} />
+                      <Person sx={{ fontSize: avatarSize * 0.5 }} />
                     </Avatar>
                   </Badge>
                 ) : (
                   <Avatar
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: avatarSize,
+                      height: avatarSize,
                       bgcolor: "primary.main",
-                      fontSize: 32,
+                      fontSize: avatarSize * 0.4,
+                      transition:
+                        "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                     }}
                   >
-                    <Person sx={{ fontSize: 40 }} />
+                    <Person sx={{ fontSize: avatarSize * 0.5 }} />
                   </Avatar>
                 )}
-
-                <Box sx={{ textAlign: "center" }}>
-                  <Typography variant="h5" fontWeight="bold">
-                    {displayName}
-                  </Typography>
-                  {user?.phone_number && (
-                    <Typography variant="body2" color="text.secondary">
-                      {user.phone_number}
-                    </Typography>
-                  )}
-                </Box>
               </Box>
-              <LeftZone />
-            </Toolbar>
-          </AppBar>
-        </Slide>
 
-        {/* Compact Header */}
-        <Slide {...slideProps} in={scrolled}>
-          <AppBar
-            position="fixed"
-            elevation={0}
-            sx={{
-              backgroundColor: "background.paper",
-              borderColor: "divider",
-              color: "text.primary",
-              transition: "all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-            }}
-          >
-            <Toolbar
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                minHeight: 64,
-              }}
-            >
-              <RightZone />
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  flex: 1,
-                  textAlign: "center",
-                  minWidth: 0,
-                }}
-              >
+              <Box sx={{ textAlign: "center" }}>
                 <Typography
-                  variant="h6"
+                  variant="h5"
+                  fontWeight="bold"
+                  color="text.primary"
                   sx={{
-                    fontWeight: 600,
-                    fontSize: "1.1rem",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    width: "100%",
+                    fontSize: "1.5rem",
+                    transition:
+                      "font-size 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                   }}
                 >
                   {displayName}
                 </Typography>
-                {subtitle && (
+                {user?.phone_number && (
                   <Typography
-                    variant="caption"
+                    variant="body2"
+                    color="text.secondary"
                     sx={{
-                      color: "text.secondary",
-                      lineHeight: 1,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      width: "100%",
+                      fontSize: "0.875rem",
+                      opacity: 1 - transitionProgress * 0.1,
+                      transition:
+                        "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                     }}
                   >
                     {user.phone_number}
                   </Typography>
                 )}
               </Box>
-              <LeftZone />
-            </Toolbar>
-          </AppBar>
-        </Slide>
+            </Box>
+            <LeftZone />
+          </Toolbar>
+        </AppBar>
 
         {/* Spacer to prevent content overlap */}
-        <Box sx={{ height: scrolled ? 64 : 200 }} />
+        <Box sx={{ height: headerHeight }} />
       </>
     );
   }
@@ -368,6 +333,8 @@ export const Header: React.FC<HeaderProps> = ({
       sx={{
         backgroundColor: "background.paper",
         borderColor: "divider",
+        borderRadius: 0,
+        boxShadow: "none",
         color: "text.primary",
       }}
     >
