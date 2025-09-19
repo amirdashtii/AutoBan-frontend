@@ -10,7 +10,11 @@ import {
   Badge,
   Button,
 } from "@mui/material";
-import { ChevronRight as ChevronRightIcon, Person } from "@mui/icons-material";
+import {
+  ChevronRight as ChevronRightIcon,
+  Person,
+  Add as AddIcon,
+} from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
 // Header Component
@@ -28,6 +32,21 @@ interface HeaderProps {
   leftActions?: React.ReactNode[];
   rightActions?: React.ReactNode[];
 
+  // New action buttons
+  showAddButton?: boolean;
+  showEditButton?: boolean;
+  showSaveButton?: boolean;
+  showCancelButton?: boolean;
+  onAddClick?: () => void;
+  onEditClick?: () => void;
+  onSaveClick?: () => void;
+  onCancelClick?: () => void;
+  isAddDisabled?: boolean;
+  isEditDisabled?: boolean;
+  isSaveDisabled?: boolean;
+  isCancelDisabled?: boolean;
+  isSaving?: boolean;
+
   onBackClick?: () => void;
 }
 
@@ -38,6 +57,19 @@ export const Header: React.FC<HeaderProps> = ({
   leftActions = [],
   rightActions = [],
   showBack = false,
+  showAddButton = false,
+  showEditButton = false,
+  showSaveButton = false,
+  showCancelButton = false,
+  onAddClick,
+  onEditClick,
+  onSaveClick,
+  onCancelClick,
+  isAddDisabled = false,
+  isEditDisabled = false,
+  isSaveDisabled = false,
+  isCancelDisabled = false,
+  isSaving = false,
   onBackClick,
 }) => {
   const router = useRouter();
@@ -88,6 +120,75 @@ export const Header: React.FC<HeaderProps> = ({
       </Button>
     ) : null;
 
+  // Action buttons components
+  const AddButton = () =>
+    showAddButton ? (
+      <Button
+        onClick={onAddClick}
+        variant="text"
+        disabled={isAddDisabled}
+        sx={{
+          minWidth: "auto",
+          px: 2,
+          py: 0.5,
+          fontSize: "0.875rem",
+        }}
+      >
+        <AddIcon sx={{ fontSize: 16, mr: 0.5 }} />
+      </Button>
+    ) : null;
+
+  const EditButton = () =>
+    showEditButton ? (
+      <Button
+        onClick={onEditClick}
+        variant="text"
+        disabled={isEditDisabled}
+        sx={{
+          minWidth: "auto",
+          px: 2,
+          py: 0.5,
+          fontSize: "0.875rem",
+        }}
+      >
+        ویرایش
+      </Button>
+    ) : null;
+
+  const SaveButton = () =>
+    showSaveButton ? (
+      <Button
+        onClick={onSaveClick}
+        variant="text"
+        disabled={isSaveDisabled}
+        sx={{
+          minWidth: "auto",
+          px: 2,
+          py: 0.5,
+          fontSize: "0.875rem",
+        }}
+      >
+        {isSaving ? "در حال ذخیره..." : "ذخیره"}
+      </Button>
+    ) : null;
+
+  const CancelButton = () =>
+    showCancelButton ? (
+      <Button
+        onClick={onCancelClick}
+        variant="text"
+        disabled={isCancelDisabled}
+        sx={{
+          minWidth: "auto",
+          px: 2,
+          py: 0.5,
+          fontSize: "0.875rem",
+        }}
+      >
+        لغو
+      </Button>
+    ) : null;
+
   // Common right zone component
   const RightZone = () => (
     <Box
@@ -100,8 +201,9 @@ export const Header: React.FC<HeaderProps> = ({
       }}
     >
       <BackButton />
+      <CancelButton />
 
-      {/* Right Actions */}
+      {/* Custom Right Actions */}
       {rightActions.map((action, index) => (
         <React.Fragment key={index}>{action}</React.Fragment>
       ))}
@@ -163,6 +265,11 @@ export const Header: React.FC<HeaderProps> = ({
         justifyContent: "flex-end",
       }}
     >
+      <AddButton />
+      <EditButton />
+      <SaveButton />
+
+      {/* Custom Left Actions */}
       {leftActions.map((action, index) => (
         <React.Fragment key={`right-${index}`}>{action}</React.Fragment>
       ))}
