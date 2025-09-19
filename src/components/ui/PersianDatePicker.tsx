@@ -94,11 +94,6 @@ export function PersianDatePicker({
       const gregorianDate = persianDateObj.convert(gregorian);
       const isoString = gregorianDate.toDate().toISOString();
 
-      console.log("PersianDatePicker - Date changed:", {
-        persian: `${selectedYear}/${selectedMonth}/${selectedDay}`,
-        gregorian: isoString,
-      });
-
       onChange?.(isoString);
     } catch (error) {
       console.error("Error converting date:", error);

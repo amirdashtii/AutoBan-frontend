@@ -84,7 +84,7 @@ export default function ProfileEdit() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Navigate back to profile page
-      router.push("/settings/profile");
+      router.back();
     } catch (error) {
       console.error("Error saving profile:", error);
     } finally {
@@ -93,7 +93,7 @@ export default function ProfileEdit() {
   };
 
   const handleCancel = () => {
-    router.push("/settings/profile");
+    router.back();
   };
 
   return (
