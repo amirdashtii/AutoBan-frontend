@@ -61,3 +61,22 @@ export const formatToPersianDateWithAge = (dateString?: string): string => {
     return "";
   }
 };
+
+/**
+ * Converts a date string to YYYY-MM-DD format for backend API
+ * @param dateString - ISO date string or any valid date string
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const formatDateForAPI = (dateString?: string): string => {
+  if (!dateString) return "";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+
+    return date.toISOString().split("T")[0]; // YYYY-MM-DD format
+  } catch (error) {
+    console.error("Error formatting date for API:", error);
+    return "";
+  }
+};

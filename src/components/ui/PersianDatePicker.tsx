@@ -15,8 +15,8 @@ import {
 } from "@mui/material";
 
 interface PersianDatePickerProps {
-  value?: string; // Gregorian date string (ISO format)
-  onChange?: (gregorianDate: string) => void;
+  value?: string; // Gregorian date string (YYYY-MM-DD format)
+  onChange?: (gregorianDate: string) => void; // Returns YYYY-MM-DD format
   label?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -92,9 +92,15 @@ export function PersianDatePicker({
 
       // Convert Persian date to Gregorian
       const gregorianDate = persianDateObj.convert(gregorian);
-      const isoString = gregorianDate.toDate().toISOString();
+      const date = gregorianDate.toDate();
 
-      onChange?.(isoString);
+      // Create date string without timezone issues
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const dateString = `${year}-${month}-${day}`;
+
+      onChange?.(dateString);
     } catch (error) {
       console.error("Error converting date:", error);
     }

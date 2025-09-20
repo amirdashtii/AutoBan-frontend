@@ -9,10 +9,15 @@ import {
   Typography,
   IconButton,
   ListItemButton,
-  Divider,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useUpdateProfileMutation } from "@/hooks/useAuthQuery";
+import { UpdateProfileRequest } from "@/types/api";
 import {
   AppContainer,
   Header,
@@ -26,6 +31,7 @@ import { formatToPersianDateWithAge } from "@/utils/dateUtils";
 export default function ProfileEdit() {
   const { user } = useAuth();
   const router = useRouter();
+  const updateProfileMutation = useUpdateProfileMutation();
 
   const [formData, setFormData] = useState({
     firstName: user?.first_name || "",
@@ -37,6 +43,9 @@ export default function ProfileEdit() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingBirthday, setIsEditingBirthday] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
 
   // Update form data when user data changes
   useEffect(() => {
@@ -67,26 +76,78 @@ export default function ProfileEdit() {
     );
   }
 
+  // Email validation function
+  const validateEmail = (email: string): string => {
+    if (!email) return ""; // Empty email is allowed (optional field)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return "فرمت ایمیل نامعتبر است";
+    }
+    return "";
+  };
+
   const handleInputChange = (field: string) => (value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Validate email when it changes
+    if (field === "email") {
+      const error = validateEmail(value);
+      setEmailError(error);
+    }
   };
 
   const handleSave = async () => {
     setIsLoading(true);
-    try {
-      // TODO: Implement API call to save profile
-      console.log("Saving profile:", formData);
+    setErrorDialogOpen(false); // Close error dialog
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Validate email before saving
+    const emailValidationError = validateEmail(formData.email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Create payload with only changed fields
+      const payload: UpdateProfileRequest = {};
+
+      if (formData.firstName !== user?.first_name) {
+        payload.first_name = formData.firstName;
+      }
+
+      if (formData.lastName !== user?.last_name) {
+        payload.last_name = formData.lastName;
+      }
+
+      if (formData.email !== user?.email) {
+        payload.email = formData.email;
+      }
+
+      if (formData.birthday !== user?.birthday) {
+        payload.birthday = formData.birthday;
+      }
+
+      // Only proceed if there are changes
+      if (Object.keys(payload).length === 0) {
+        router.back();
+        return;
+      }
+
+      // Use the existing mutation hook
+      await updateProfileMutation.mutateAsync(payload);
 
       // Navigate back to profile page
       router.back();
     } catch (error) {
-      console.error("Error saving profile:", error);
+      // Set error message and open dialog
+      const errorMsg =
+        error instanceof Error ? error.message : "خطا در ذخیره اطلاعات پروفایل";
+      setErrorMessage(errorMsg);
+      setErrorDialogOpen(true);
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +192,16 @@ export default function ProfileEdit() {
               placeholder="نام خانوادگی"
               showCancelIcon
               onCancel={() => handleInputChange("lastName")("")}
+            />
+            <FormField
+              value={formData.email}
+              onChange={handleInputChange("email")}
+              placeholder="ایمیل"
+              showCancelIcon
+              onCancel={() => handleInputChange("email")("")}
               showDivider={false}
+              error={!!emailError}
+              helperText={emailError}
             />
           </List>
 
@@ -195,37 +265,6 @@ export default function ProfileEdit() {
             <ListItem disablePadding>
               <ListItemButton>
                 <ListItemText
-                  primary="ایمیل"
-                  slotProps={{
-                    primary: {
-                      fontSize: "1rem",
-                      color: "text.secondary",
-                      fontWeight: 500,
-                    },
-                  }}
-                />
-                <ListItemText
-                  primary={user?.email || ""}
-                  sx={{ textAlign: "right" }}
-                  slotProps={{
-                    primary: {
-                      fontSize: "1rem",
-                      color: "text.primary",
-                      fontWeight: 400,
-                    },
-                  }}
-                />
-                <IconButton edge="end" aria-label="delete">
-                  <ChevronLeft />
-                </IconButton>
-              </ListItemButton>
-            </ListItem>
-
-            <Divider variant="middle" sx={{ borderColor: "divider" }} />
-
-            <ListItem disablePadding>
-              <ListItemButton>
-                <ListItemText
                   primary="شماره موبایل"
                   slotProps={{
                     primary: {
@@ -254,6 +293,36 @@ export default function ProfileEdit() {
           </List>
         </Box>
       </ResponsiveContainer>
+
+      {/* Error Dialog */}
+      <Dialog
+        open={errorDialogOpen}
+        onClose={() => setErrorDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent sx={{ backgroundColor: "background.paper" }}>
+          <Typography variant="body1" sx={{ textAlign: "center" }}>
+            {errorMessage}
+          </Typography>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent: "center",
+            backgroundColor: "background.paper",
+          }}
+        >
+          <Button
+            onClick={() => setErrorDialogOpen(false)}
+            fullWidth
+            variant="contained"
+            color="primary"
+            sx={{ minWidth: 100 }}
+          >
+            تایید
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppContainer>
   );
 }

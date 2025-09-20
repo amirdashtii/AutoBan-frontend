@@ -1,7 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, HTTP_METHODS } from "@/utils/api";
 import { queryKeys } from "@/lib/react-query";
-import { User, LoginRequest, SignupRequest, AuthResponse } from "@/types/api";
+import {
+  User,
+  LoginRequest,
+  SignupRequest,
+  AuthResponse,
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+} from "@/types/api";
 import { AuthService } from "@/services/authService";
 
 // Get current user with caching
@@ -107,15 +114,25 @@ export function useUpdateProfileMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (profileData: Partial<User>): Promise<User> => {
-      return await apiRequest<User>("/users/me", {
+    mutationFn: async (
+      profileData: UpdateProfileRequest
+    ): Promise<UpdateProfileResponse> => {
+      return await apiRequest<UpdateProfileResponse>("/users/me", {
         method: HTTP_METHODS.PUT,
         body: JSON.stringify(profileData),
       });
     },
     onSuccess: (updatedUser) => {
       // Update the user cache with new data
-      queryClient.setQueryData(queryKeys.auth.user, updatedUser);
+      queryClient.setQueryData(queryKeys.auth.user, (oldUser: any) => {
+        // Since backend now returns complete user data, we can use it directly
+        const mergedUser = {
+          ...oldUser,
+          ...updatedUser,
+        };
+
+        return mergedUser;
+      });
     },
   });
 }

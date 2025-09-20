@@ -43,6 +43,22 @@ export interface User {
   updated_at: string;
 }
 
+// Profile Update Types
+export interface UpdateProfileRequest {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  birthday?: string;
+}
+
+export interface UpdateProfileResponse {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  birthday: string;
+}
+
 // Phone Verification Types
 export interface SendVerificationCodeRequest {
   phone_number: string;
