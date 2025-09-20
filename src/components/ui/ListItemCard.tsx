@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, IconButton, Stack, Paper } from "@mui/material";
+import {
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Box,
+} from "@mui/material";
 
 interface ListItemCardProps {
   title: string;
@@ -19,37 +25,21 @@ export default function ListItemCard({
   onClick,
 }: ListItemCardProps) {
   return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 1.5,
-        borderRadius: 1,
-        cursor: onClick ? "pointer" : "default",
-        "&:hover": { bgcolor: "action.hover" },
-      }}
-      onClick={onClick}
-    >
-      <Stack
-        direction="row"
-        spacing={1.5}
-        alignItems="center"
-        justifyContent="space-between"
+    <ListItem disablePadding>
+      <ListItemButton
+        onClick={onClick}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          {icon && <Box sx={{ color: "primary.main" }}>{icon}</Box>}
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              {title}
-            </Typography>
-            {subtitle && (
-              <Typography variant="body2" color="text.secondary">
-                {subtitle}
-              </Typography>
-            )}
-          </Box>
-        </Stack>
-        {actions && <Box>{actions}</Box>}
-      </Stack>
-    </Paper>
+        {icon && (
+          <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
+            {icon}
+          </ListItemIcon>
+        )}
+        <ListItemText
+          primary={title}
+          secondary={subtitle}
+        />
+        {actions && <Box sx={{ ml: 1 }}>{actions}</Box>}
+      </ListItemButton>
+    </ListItem>
   );
 }

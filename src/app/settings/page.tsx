@@ -73,9 +73,13 @@ export default function Settings() {
         />
       )}
 
-      <ResponsiveContainer padding="medium" fullHeight={false}>       
-
-        <List>
+      <ResponsiveContainer padding="medium" fullHeight={false}>
+        <List
+          sx={{
+            backgroundColor: "background.paper",
+            borderRadius: 1,
+          }}
+        >
           <ListItemCard
             title="پروفایل"
             subtitle="مشاهده و ویرایش پروفایل"
@@ -88,7 +92,13 @@ export default function Settings() {
             onClick={() => router.push("/settings/profile")}
           />
         </List>
-        <List>
+        <List
+          sx={{
+            backgroundColor: "background.paper",
+            borderRadius: 1,
+            mt: 2,
+          }}
+        >
           <ListItemCard
             title="اعلان‌ها"
             subtitle="دریافت اعلان‌های سرویس"
@@ -142,7 +152,13 @@ export default function Settings() {
         </List>
 
         {/* Account Settings */}
-        <List>
+        <List
+          sx={{
+            backgroundColor: "background.paper",
+            borderRadius: 1,
+            mt: 2,
+          }}
+        >
           <ListItemCard
             title="تغییر رمز عبور"
             subtitle="بروزرستانی رمز عبور"

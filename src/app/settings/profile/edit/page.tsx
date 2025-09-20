@@ -24,6 +24,7 @@ import {
   ResponsiveContainer,
   FormField,
   PersianDatePicker,
+  ListItemInfo,
 } from "@/components/ui";
 import { ChevronLeft } from "@mui/icons-material";
 import { formatToPersianDateWithAge } from "@/utils/dateUtils";
@@ -262,34 +263,11 @@ export default function ProfileEdit() {
               mt: 2,
             }}
           >
-            <ListItem disablePadding>
-              <ListItemButton>
-                <ListItemText
-                  primary="شماره موبایل"
-                  slotProps={{
-                    primary: {
-                      fontSize: "1rem",
-                      color: "text.secondary",
-                      fontWeight: 500,
-                    },
-                  }}
-                />
-                <ListItemText
-                  primary={user?.phone_number || ""}
-                  sx={{ textAlign: "right" }}
-                  slotProps={{
-                    primary: {
-                      fontSize: "1rem",
-                      color: "text.primary",
-                      fontWeight: 400,
-                    },
-                  }}
-                />
-                <IconButton edge="end" aria-label="delete">
-                  <ChevronLeft />
-                </IconButton>
-              </ListItemButton>
-            </ListItem>
+            <ListItemInfo
+              label="شماره موبایل"
+              value={user?.phone_number || ""}
+              icon={<ChevronLeft />}
+            />
           </List>
         </Box>
       </ResponsiveContainer>
