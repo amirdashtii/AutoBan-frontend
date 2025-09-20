@@ -134,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
           fontSize: "0.875rem",
         }}
       >
-        <AddIcon sx={{ fontSize: 16, mr: 0.5 }} />
+        <AddIcon />
       </Button>
     ) : null;
 

@@ -1,68 +1,38 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Box,
-  Tabs,
-  Tab,
-  Badge,
-  IconButton,
   Typography,
   CircularProgress,
   Card,
   CardContent,
-  Chip,
   Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
+  List,
 } from "@mui/material";
 import {
   DirectionsCar,
-  Build,
-  Schedule,
   ArrowDownward,
   Delete,
+  ChevronLeft as ChevronLeftIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import InactiveUserRestriction from "@/components/InactiveUserRestriction";
 import {
   AppContainer,
   Header,
   ResponsiveContainer,
   StaggeredList,
-  ListItem,
-  AddButton,
+  ListItemCard,
 } from "@/components/ui";
 import { useResponsive } from "@/components/ui/ResponsiveContainer";
-import { vehicleService } from "@/services/vehicleService";
 import { useUserVehicles, useDeleteUserVehicle } from "@/hooks/useVehicles";
 import { UserVehicle } from "@/types/api";
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`vehicles-tabpanel-${index}`}
-      aria-labelledby={`vehicles-tab-${index}`}
-      {...other}
-    >
-      {value === index && children}
-    </div>
-  );
-}
 
 export default function Vehicles() {
   const { user } = useAuth();
@@ -78,7 +48,6 @@ export default function Vehicles() {
   } = useUserVehicles();
 
   // State management
-  const [tabValue, setTabValue] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
@@ -96,10 +65,6 @@ export default function Vehicles() {
   const [swipeStates, setSwipeStates] = useState<
     Record<number, { x: number; showDelete: boolean }>
   >({});
-
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
 
   // Pull to refresh handler
   const handleRefresh = async () => {
@@ -274,16 +239,10 @@ export default function Vehicles() {
     <AppContainer
       header={
         <Header
-          title="خودروها و سرویس‌ها"
-          subtitle={`${stats.totalVehicles} خودرو | ${stats.totalServices} سرویس`}
-          leftActions={[
-            <AddButton
-              key="add-vehicle"
-              onClick={() => router.push("/vehicles/add")}
-              variant="icon"
-              size="small"
-            />,
-          ]}
+          title="خودروها"
+          subtitle={`${stats.totalVehicles} خودرو`}
+          showAddButton
+          onAddClick={() => router.push("/vehicles/add")}
         />
       }
     >
@@ -339,264 +298,153 @@ export default function Vehicles() {
             setSwipeStates({});
           }}
         >
-          {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              variant="fullWidth"
-            >
-              <Tab
-                label={
-                  <Badge badgeContent={stats.totalVehicles} color="primary">
-                    خودروها
-                  </Badge>
-                }
+          {/* Vehicles List */}
+          {vehiclesLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : vehiclesError ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              خطا در بارگذاری لیست خودروها. لطفاً دوباره تلاش کنید.
+            </Alert>
+          ) : vehicles.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <DirectionsCar
+                sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
               />
-              <Tab
-                label={
-                  <Badge badgeContent={stats.totalServices} color="success">
-                    سرویس‌ها
-                  </Badge>
-                }
-              />
-              <Tab
-                label={
-                  <Badge badgeContent={stats.urgentReminders} color="error">
-                    یادآوری‌ها
-                  </Badge>
-                }
-              />
-            </Tabs>
-          </Box>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                خودرویی یافت نشد
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                برای شروع، اولین خودروی خود را اضافه کنید
+              </Typography>
+              <Card>
+                <CardContent>
+                  <Typography variant="body2" color="primary">
+                    💡 با کلیک روی دکمه + در بالای صفحه، خودرو اضافه کنید
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
+          ) : (
+            <StaggeredList>
+              {vehicles.map((vehicle: UserVehicle) => {
+                const swipeState = swipeStates[vehicle.id] || {
+                  x: 0,
+                  showDelete: false,
+                };
 
-          {/* Vehicles Tab */}
-          <TabPanel value={tabValue} index={0}>
-            {vehiclesLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : vehiclesError ? (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                خطا در بارگذاری لیست خودروها. لطفاً دوباره تلاش کنید.
-              </Alert>
-            ) : vehicles.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 8 }}>
-                <DirectionsCar
-                  sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
-                />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  خودرویی یافت نشد
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 3 }}
-                >
-                  برای شروع، اولین خودروی خود را اضافه کنید
-                </Typography>
-                <Card>
-                  <CardContent>
-                    <Typography variant="body2" color="primary">
-                      💡 با کلیک روی دکمه + در بالای صفحه، خودرو اضافه کنید
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-            ) : (
-              <StaggeredList>
-                {vehicles.map((vehicle: UserVehicle) => {
-                  const swipeState = swipeStates[vehicle.id] || {
-                    x: 0,
-                    showDelete: false,
-                  };
-
-                  return (
+                return (
+                  <List
+                    key={vehicle.id}
+                    sx={{
+                      position: "relative",
+                      overflow: "hidden",
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {/* Delete button background */}
                     <Box
-                      key={vehicle.id}
                       sx={{
-                        position: "relative",
-                        overflow: "hidden",
-                        borderRadius: 2,
-                        mb: 1,
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 80,
+                        bgcolor: "error.main",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "column",
+                        opacity: swipeState.showDelete ? 1 : 0,
+                        transition: "opacity 0.2s ease",
+                        gap: 0.5,
+                      }}
+                      onClick={() => handleDeleteClick(vehicle)}
+                    >
+                      <Delete sx={{ color: "white", fontSize: 20 }} />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "white", fontSize: "1rem" }}
+                      >
+                        حذف
+                      </Typography>
+                    </Box>
+
+                    {/* Swipeable content */}
+                    <Box
+                      sx={{
+                        transform: `translateX(${swipeState.x}px)`,
+                        transition:
+                          swipeState.x === 0 ? "transform 0.3s ease" : "none",
+                      }}
+                      onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        handleSwipeStart(vehicle.id, touch.clientX);
+
+                        let startX = touch.clientX;
+
+                        const handleTouchMove = (moveEvent: TouchEvent) => {
+                          const currentX = moveEvent.touches[0].clientX;
+                          const deltaX = currentX - startX;
+                          handleSwipeMove(vehicle.id, deltaX);
+                        };
+
+                        const handleTouchEnd = () => {
+                          handleSwipeEnd(vehicle.id);
+                          document.removeEventListener(
+                            "touchmove",
+                            handleTouchMove
+                          );
+                          document.removeEventListener(
+                            "touchend",
+                            handleTouchEnd
+                          );
+                        };
+
+                        document.addEventListener(
+                          "touchmove",
+                          handleTouchMove,
+                          { passive: false }
+                        );
+                        document.addEventListener("touchend", handleTouchEnd);
                       }}
                     >
-                      {/* Delete button background */}
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 80,
-                          bgcolor: "error.main",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexDirection: "column",
-                          opacity: swipeState.showDelete ? 1 : 0,
-                          transition: "opacity 0.2s ease",
-                          gap: 0.5,
+                      <ListItemCard
+                        title={vehicle.name}
+                        subtitle={
+                          isMobile
+                            ? `${vehicle.production_year} | ${
+                                vehicle.current_mileage?.toLocaleString() || 0
+                              } کم`
+                            : `${
+                                vehicle.model?.name_fa ||
+                                vehicle.brand?.name_fa ||
+                                "نامشخص"
+                              } - ${vehicle.production_year} | ${
+                                vehicle.current_mileage?.toLocaleString() || 0
+                              } کیلومتر`
+                        }
+                        icon={<DirectionsCar />}
+                        actions={<ChevronLeftIcon fontSize="large" />}
+                        onClick={() => {
+                          // Reset any open swipe states
+                          Object.keys(swipeStates).forEach((id) => {
+                            if (Number(id) !== vehicle.id) {
+                              resetSwipeState(Number(id));
+                            }
+                          });
+                          router.push(`/vehicles/${vehicle.id}`);
                         }}
-                        onClick={() => handleDeleteClick(vehicle)}
-                      >
-                        <Delete sx={{ color: "white", fontSize: 20 }} />
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "white", fontSize: "1rem" }}
-                        >
-                          حذف
-                        </Typography>
-                      </Box>
-
-                      {/* Swipeable content */}
-                      <Box
-                        sx={{
-                          transform: `translateX(${swipeState.x}px)`,
-                          transition:
-                            swipeState.x === 0 ? "transform 0.3s ease" : "none",
-                        }}
-                        onTouchStart={(e) => {
-                          const touch = e.touches[0];
-                          handleSwipeStart(vehicle.id, touch.clientX);
-
-                          let startX = touch.clientX;
-
-                          const handleTouchMove = (moveEvent: TouchEvent) => {
-                            const currentX = moveEvent.touches[0].clientX;
-                            const deltaX = currentX - startX;
-                            handleSwipeMove(vehicle.id, deltaX);
-                          };
-
-                          const handleTouchEnd = () => {
-                            handleSwipeEnd(vehicle.id);
-                            document.removeEventListener(
-                              "touchmove",
-                              handleTouchMove
-                            );
-                            document.removeEventListener(
-                              "touchend",
-                              handleTouchEnd
-                            );
-                          };
-
-                          document.addEventListener(
-                            "touchmove",
-                            handleTouchMove,
-                            { passive: false }
-                          );
-                          document.addEventListener("touchend", handleTouchEnd);
-                        }}
-                      >
-                        <ListItem
-                          title={vehicle.name}
-                          subtitle={
-                            isMobile
-                              ? `${vehicle.production_year} | ${
-                                  vehicle.current_mileage?.toLocaleString() || 0
-                                } کم`
-                              : `${
-                                  vehicle.model?.name_fa ||
-                                  vehicle.brand?.name_fa ||
-                                  "نامشخص"
-                                } - ${vehicle.production_year} | ${
-                                  vehicle.current_mileage?.toLocaleString() || 0
-                                } کیلومتر`
-                          }
-                          avatar={
-                            <Box
-                              sx={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 2,
-                                bgcolor: "primary.light",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "primary.dark",
-                              }}
-                            >
-                              <DirectionsCar />
-                            </Box>
-                          }
-                          rightContent={
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "flex-end",
-                                  gap: 0.5,
-                                }}
-                              >
-                                {vehicle.license_plate && (
-                                  <Chip
-                                    label={vehicle.license_plate}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{ maxWidth: { xs: 100, sm: "none" } }}
-                                  />
-                                )}
-                                {vehicle.color && !isMobile && (
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                  >
-                                    رنگ: {vehicle.color}
-                                  </Typography>
-                                )}
-                              </Box>
-                            </Box>
-                          }
-                          onClick={() => {
-                            // Reset any open swipe states
-                            Object.keys(swipeStates).forEach((id) => {
-                              if (Number(id) !== vehicle.id) {
-                                resetSwipeState(Number(id));
-                              }
-                            });
-                            router.push(`/vehicles/${vehicle.id}`);
-                          }}
-                        />
-                      </Box>
+                      />
                     </Box>
-                  );
-                })}
-              </StaggeredList>
-            )}
-          </TabPanel>
-
-          {/* Services Tab */}
-          <TabPanel value={tabValue} index={1}>
-            <Box sx={{ textAlign: "center", py: 8 }}>
-              <Build sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                سرویس‌ها
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                لیست سرویس‌ها پس از پیاده‌سازی API نمایش داده خواهد شد
-              </Typography>
-            </Box>
-          </TabPanel>
-
-          {/* Reminders Tab */}
-          <TabPanel value={tabValue} index={2}>
-            <Box sx={{ textAlign: "center", py: 8 }}>
-              <Schedule sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                یادآوری‌ها
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                یادآوری‌های سرویس پس از پیاده‌سازی API نمایش داده خواهد شد
-              </Typography>
-            </Box>
-          </TabPanel>
+                  </List>
+                );
+              })}
+            </StaggeredList>
+          )}
         </ResponsiveContainer>
 
         {/* Delete Confirmation Dialog */}

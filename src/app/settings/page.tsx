@@ -28,6 +28,7 @@ import {
   Header,
   ResponsiveContainer,
   ListItemCard,
+  StaggeredList,
 } from "@/components/ui";
 import type { SelectChangeEvent } from "@mui/material/Select";
 
@@ -74,112 +75,114 @@ export default function Settings() {
       )}
 
       <ResponsiveContainer padding="medium" fullHeight={false}>
-        <List
-          sx={{
-            backgroundColor: "background.paper",
-            borderRadius: 1,
-          }}
-        >
-          <ListItemCard
-            title="پروفایل"
-            subtitle="مشاهده و ویرایش پروفایل"
-            icon={
-              <Box sx={{ color: "error.light" }}>
-                <Person />
-              </Box>
-            }
-            actions={<ChevronLeftIcon fontSize="large" />}
-            onClick={() => router.push("/settings/profile")}
-          />
-        </List>
-        <List
-          sx={{
-            backgroundColor: "background.paper",
-            borderRadius: 1,
-            mt: 2,
-          }}
-        >
-          <ListItemCard
-            title="اعلان‌ها"
-            subtitle="دریافت اعلان‌های سرویس"
-            icon={
-              <Box sx={{ color: "warning.light" }}>
-                <Notifications />
-              </Box>
-            }
-            actions={
-              <Switch
-                checked={settings.notifications}
-                onChange={handleSettingChange("notifications")}
-              />
-            }
-          />
-          <ListItemCard
-            title="تم برنامه"
-            subtitle="تغییر حالت روشن/تاریک"
-            icon={
-              <Box sx={{ color: "blue" }}>
-                <SettingsIcon />
-              </Box>
-            }
-            actions={
-              <FormControl sx={{ minWidth: 90 }}>
-                <ColorModeSelect size="small" />
-              </FormControl>
-            }
-          />
-          <ListItemCard
-            title="زبان"
-            subtitle="زبان برنامه"
-            icon={
-              <Box sx={{ color: "success.main" }}>
-                <Language />
-              </Box>
-            }
-            actions={
-              <FormControl sx={{ minWidth: 90 }}>
-                <Select
-                  value={settings.language}
-                  onChange={handleLanguageChange}
-                  size="small"
-                >
-                  <MenuItem value="fa">فارسی</MenuItem>
-                  <MenuItem value="en">English</MenuItem>
-                </Select>
-              </FormControl>
-            }
-          />
-        </List>
+        <StaggeredList>
+          <List
+            sx={{
+              backgroundColor: "background.paper",
+              borderRadius: 1,
+            }}
+          >
+            <ListItemCard
+              title="پروفایل"
+              subtitle="مشاهده و ویرایش پروفایل"
+              icon={
+                <Box sx={{ color: "error.light" }}>
+                  <Person />
+                </Box>
+              }
+              actions={<ChevronLeftIcon fontSize="large" />}
+              onClick={() => router.push("/settings/profile")}
+            />
+          </List>
+          <List
+            sx={{
+              backgroundColor: "background.paper",
+              borderRadius: 1,
+              mt: 2,
+            }}
+          >
+            <ListItemCard
+              title="اعلان‌ها"
+              subtitle="دریافت اعلان‌های سرویس"
+              icon={
+                <Box sx={{ color: "warning.light" }}>
+                  <Notifications />
+                </Box>
+              }
+              actions={
+                <Switch
+                  checked={settings.notifications}
+                  onChange={handleSettingChange("notifications")}
+                />
+              }
+            />
+            <ListItemCard
+              title="تم برنامه"
+              subtitle="تغییر حالت روشن/تاریک"
+              icon={
+                <Box sx={{ color: "blue" }}>
+                  <SettingsIcon />
+                </Box>
+              }
+              actions={
+                <FormControl sx={{ minWidth: 90 }}>
+                  <ColorModeSelect size="small" />
+                </FormControl>
+              }
+            />
+            <ListItemCard
+              title="زبان"
+              subtitle="زبان برنامه"
+              icon={
+                <Box sx={{ color: "success.main" }}>
+                  <Language />
+                </Box>
+              }
+              actions={
+                <FormControl sx={{ minWidth: 90 }}>
+                  <Select
+                    value={settings.language}
+                    onChange={handleLanguageChange}
+                    size="small"
+                  >
+                    <MenuItem value="fa">فارسی</MenuItem>
+                    <MenuItem value="en">English</MenuItem>
+                  </Select>
+                </FormControl>
+              }
+            />
+          </List>
 
-        {/* Account Settings */}
-        <List
-          sx={{
-            backgroundColor: "background.paper",
-            borderRadius: 1,
-            mt: 2,
-          }}
-        >
-          <ListItemCard
-            title="تغییر رمز عبور"
-            subtitle="بروزرستانی رمز عبور"
-            icon={
-              <Box sx={{ color: "warning.main" }}>
-                <Security />
-              </Box>
-            }
-            actions={<ChevronLeftIcon fontSize="large" />}
-          />
-          <ListItemCard
-            title="خروج از حساب"
-            subtitle="خروج از برنامه"
-            icon={
-              <Box sx={{ color: "error.main" }}>
-                <Logout />
-              </Box>
-            }
-            onClick={handleLogout}
-          />
-        </List>
+          {/* Account Settings */}
+          <List
+            sx={{
+              backgroundColor: "background.paper",
+              borderRadius: 1,
+              mt: 2,
+            }}
+          >
+            <ListItemCard
+              title="تغییر رمز عبور"
+              subtitle="بروزرستانی رمز عبور"
+              icon={
+                <Box sx={{ color: "warning.main" }}>
+                  <Security />
+                </Box>
+              }
+              actions={<ChevronLeftIcon fontSize="large" />}
+            />
+            <ListItemCard
+              title="خروج از حساب"
+              subtitle="خروج از برنامه"
+              icon={
+                <Box sx={{ color: "error.main" }}>
+                  <Logout />
+                </Box>
+              }
+              onClick={handleLogout}
+            />
+          </List>
+        </StaggeredList>
       </ResponsiveContainer>
 
       {/* Logout Dialog */}
