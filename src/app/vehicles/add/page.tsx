@@ -7,10 +7,6 @@ import {
   Card,
   CardContent,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Stepper,
   Step,
   StepLabel,
@@ -18,27 +14,27 @@ import {
   Alert,
   Grid,
   CircularProgress,
-  FormHelperText,
-  InputAdornment,
+  Autocomplete,
+  List,
+  ListItemText,
+  ListItem,
+  ListItemButton,
 } from "@mui/material";
-import {
-  DirectionsCar,
-  Save,
-  Cancel,
-  NavigateNext,
-  NavigateBefore,
-  CheckCircle,
-  Label,
-} from "@mui/icons-material";
+import { NavigateNext, NavigateBefore, CheckCircle } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import {
   AppContainer,
   Header,
+  PersianDatePicker,
   ResponsiveContainer,
   SectionHeader,
   SlideIn,
 } from "@/components/ui";
-import { IranLicensePlate } from "@/components/ui";
+import {
+  FormField,
+  IranLicensePlate,
+  LicensePlateInput,
+} from "@/components/ui";
 import {
   vehicleService,
   VehicleType,
@@ -47,6 +43,10 @@ import {
   VehicleGeneration,
 } from "@/services/vehicleService";
 import { useVehicleHierarchy } from "@/hooks/useVehicles";
+import {
+  formatToPersianDate,
+  formatToPersianDateWithAge,
+} from "@/utils/dateUtils";
 
 const steps = ["انتخاب وسیله نقلیه", "اطلاعات تکمیلی", "نهایی کردن"];
 
@@ -73,6 +73,7 @@ export default function AddVehicle() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
 
   // API Data
   const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
@@ -221,11 +222,11 @@ export default function AddVehicle() {
     setFormData((prev) => ({ ...prev, selectedGeneration: generation }));
   };
 
-  const handleInputChange = (field: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
+  const handleInputChange = (field: string) => (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const validateStep = (step: number) => {
@@ -282,11 +283,15 @@ export default function AddVehicle() {
       const requestData = {
         name: formData.name,
         generation_id: formData.selectedGeneration!.id,
-        production_year: formData.productionYear || undefined,
+        production_year: formData.productionYear
+          ? parseInt(formData.productionYear.toString())
+          : undefined,
         color: formData.color || undefined,
         license_plate: formData.licensePlate || undefined,
         vin: formData.vin || undefined,
-        current_mileage: formData.currentMileage || undefined,
+        current_mileage: formData.currentMileage
+          ? parseInt(formData.currentMileage.toString())
+          : undefined,
         purchase_date: formData.purchaseDate || undefined,
       };
 
@@ -341,7 +346,6 @@ export default function AddVehicle() {
           title="افزودن وسیله نقلیه جدید"
           subtitle="انتخاب وسیله نقلیه و ثبت اطلاعات تکمیلی"
           showBack
-          onBackClick={() => router.back()}
         />
       }
     >
@@ -376,7 +380,7 @@ export default function AddVehicle() {
             <CardContent>
               {/* Step 1: Vehicle Selection */}
               {activeStep === 0 && (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <SectionHeader title="انتخاب وسیله نقلیه" />
 
                   {loading || isHierarchyLoading ? (
@@ -388,220 +392,114 @@ export default function AddVehicle() {
                   ) : (
                     <>
                       {/* Vehicle Type Selection - Always Visible */}
-                      <FormControl fullWidth error={!!errors.selectedType}>
-                        <InputLabel>نوع وسیله نقلیه</InputLabel>
-                        <Select
-                          value={formData.selectedType?.id || ""}
-                          onChange={(e) => {
-                            const type = vehicleTypes.find(
-                              (t) => t.id === e.target.value
-                            );
-                            if (type) handleTypeChange(type);
-                          }}
-                          label="نوع وسیله نقلیه"
-                        >
-                          {vehicleTypes.map((type) => (
-                            <MenuItem key={type.id} value={type.id}>
-                              {type.name_fa}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.selectedType && (
-                          <FormHelperText>{errors.selectedType}</FormHelperText>
+                      <Autocomplete
+                        value={formData.selectedType || null}
+                        onChange={(event, newValue) => {
+                          if (newValue) handleTypeChange(newValue);
+                        }}
+                        options={vehicleTypes}
+                        getOptionLabel={(option) => option.name_fa}
+                        isOptionEqualToValue={(option, value) =>
+                          option.id === value.id
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="نوع وسیله نقلیه"
+                            error={!!errors.selectedType}
+                            helperText={errors.selectedType}
+                          />
                         )}
-                        <FormHelperText>{errors.selectedType}</FormHelperText>
-                      </FormControl>
+                        fullWidth
+                      />
 
                       {/* Brand Selection - Only visible after type is selected */}
                       {formData.selectedType && (
-                        <FormControl fullWidth error={!!errors.selectedBrand}>
-                          <InputLabel>
-                            برند {formData.selectedType.name_fa}
-                          </InputLabel>
-                          <Select
-                            value={formData.selectedBrand?.id || ""}
-                            onChange={(e) => {
-                              const brand = brands.find(
-                                (b) => b.id === e.target.value
-                              );
-                              if (brand) handleBrandChange(brand);
-                            }}
-                            label={`برند ${formData.selectedType.name_fa}`}
-                          >
-                            {brands.map((brand) => (
-                              <MenuItem key={brand.id} value={brand.id}>
-                                {brand.name_fa}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          {errors.selectedBrand && (
-                            <FormHelperText>
-                              {errors.selectedBrand}
-                            </FormHelperText>
+                        <Autocomplete
+                          value={formData.selectedBrand || null}
+                          onChange={(event, newValue) => {
+                            if (newValue) handleBrandChange(newValue);
+                          }}
+                          options={brands}
+                          getOptionLabel={(option) => option.name_fa}
+                          isOptionEqualToValue={(option, value) =>
+                            option.id === value.id
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={`برند ${formData.selectedType?.name_fa}`}
+                              error={!!errors.selectedBrand}
+                              helperText={errors.selectedBrand}
+                            />
                           )}
-                        </FormControl>
+                          fullWidth
+                        />
                       )}
 
                       {/* Model Selection - Only visible after brand is selected */}
                       {formData.selectedBrand && (
-                        <FormControl fullWidth error={!!errors.selectedModel}>
-                          <InputLabel>
-                            مدل {formData.selectedBrand.name_fa}
-                          </InputLabel>
-                          <Select
-                            value={formData.selectedModel?.id || ""}
-                            onChange={(e) => {
-                              const model = models.find(
-                                (m) => m.id === e.target.value
-                              );
-                              if (model) handleModelChange(model);
-                            }}
-                            label={`مدل ${formData.selectedBrand.name_fa}`}
-                          >
-                            {models.map((model) => (
-                              <MenuItem key={model.id} value={model.id}>
-                                {model.name_fa}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          {errors.selectedModel && (
-                            <FormHelperText>
-                              {errors.selectedModel}
-                            </FormHelperText>
+                        <Autocomplete
+                          value={formData.selectedModel || null}
+                          onChange={(event, newValue) => {
+                            if (newValue) handleModelChange(newValue);
+                          }}
+                          options={models}
+                          getOptionLabel={(option) => option.name_fa}
+                          isOptionEqualToValue={(option, value) =>
+                            option.id === value.id
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={`مدل ${formData.selectedBrand?.name_fa}`}
+                              error={!!errors.selectedModel}
+                              helperText={errors.selectedModel}
+                            />
                           )}
-                        </FormControl>
+                          fullWidth
+                        />
                       )}
 
                       {/* Generation Selection - Only visible after model is selected */}
                       {formData.selectedModel && (
-                        <FormControl
-                          fullWidth
-                          error={!!errors.selectedGeneration}
-                        >
-                          <InputLabel>
-                            نسل {formData.selectedModel.name_fa}
-                          </InputLabel>
-                          <Select
-                            value={formData.selectedGeneration?.id || ""}
-                            onChange={(e) => {
-                              const generation = generations.find(
-                                (g) => g.id === e.target.value
-                              );
-                              if (generation)
-                                handleGenerationChange(generation);
-                            }}
-                            label={`نسل ${formData.selectedModel.name_fa}`}
-                          >
-                            {generations.map((generation) => (
-                              <MenuItem
-                                key={generation.id}
-                                value={generation.id}
-                              >
-                                {generation.name_fa}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          {errors.selectedGeneration && (
-                            <FormHelperText>
-                              {errors.selectedGeneration}
-                            </FormHelperText>
+                        <Autocomplete
+                          value={formData.selectedGeneration || null}
+                          onChange={(event, newValue) => {
+                            if (newValue) handleGenerationChange(newValue);
+                          }}
+                          options={generations}
+                          getOptionLabel={(option) => option.name_fa}
+                          isOptionEqualToValue={(option, value) =>
+                            option.id === value.id
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={`نسل ${formData.selectedModel?.name_fa}`}
+                              error={!!errors.selectedGeneration}
+                              helperText={errors.selectedGeneration}
+                            />
                           )}
-                        </FormControl>
+                          fullWidth
+                        />
                       )}
 
                       {/* Selected Vehicle Info */}
                       {vehicleInfo && (
-                        <Card
-                          variant="outlined"
-                          sx={{ bgcolor: "background.default" }}
-                        >
+                        <Card sx={{ bgcolor: "background.paper" }}>
                           <CardContent>
                             <Typography
                               variant="h6"
                               gutterBottom
                               color="primary"
                             >
-                              اطلاعات خودرو انتخاب شده
+                              خودرو انتخاب شده
                             </Typography>
-                            <Grid container spacing={2}>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  نوع:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.type}
-                                </Typography>
-                              </Grid>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  برند:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.brand}
-                                </Typography>
-                              </Grid>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  مدل:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.model}
-                                </Typography>
-                              </Grid>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  نسل:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.generation}
-                                </Typography>
-                              </Grid>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  موتور:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.engine}
-                                </Typography>
-                              </Grid>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  سوخت:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.fuelType}
-                                </Typography>
-                              </Grid>
-                              <Grid size={6}>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  بدنه:
-                                </Typography>
-                                <Typography variant="body1">
-                                  {vehicleInfo.bodyStyle}
-                                </Typography>
-                              </Grid>
-                            </Grid>
+                            <Typography variant="h6" color="text.primary">
+                              {vehicleInfo.type} {vehicleInfo.brand}{" "}
+                              {vehicleInfo.model} {vehicleInfo.generation}
+                            </Typography>
                           </CardContent>
                         </Card>
                       )}
@@ -615,251 +513,134 @@ export default function AddVehicle() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   <SectionHeader title="اطلاعات تکمیلی" />
 
-                  <Grid container spacing={2}>
-                    <TextField
-                      fullWidth
-                      label="نام وسیله نقلیه *"
-                      placeholder="مثال: پژو 206 من"
+                  <List
+                    sx={{
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <FormField
                       value={formData.name}
-                      onChange={(e) =>
-                        handleInputChange("name", e.target.value)
-                      }
+                      onChange={handleInputChange("name")}
+                      placeholder={`نام ${vehicleInfo?.type}*`}
+                      showCancelIcon
+                      onCancel={() => handleInputChange("name")("")}
                       error={!!errors.name}
                       helperText={errors.name}
                     />
 
-                    <TextField
-                      fullWidth
-                      label="کیلومتر فعلی"
-                      type="number"
-                      value={formData.currentMileage || ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "currentMileage",
-                          parseInt(e.target.value) || null
-                        )
-                      }
+                    <FormField
+                      value={formData.currentMileage}
+                      onChange={handleInputChange("currentMileage")}
+                      placeholder="کیلومتر فعلی"
+                      showCancelIcon
+                      onCancel={() => handleInputChange("currentMileage")("")}
                       error={!!errors.currentMileage}
                       helperText={errors.currentMileage}
-                      slotProps={{
-                        htmlInput: { min: 0 },
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              کیلومتر
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
+                      endText="کیلومتر"
+                      type="number"
                     />
 
-                    <TextField
-                      fullWidth
-                      label="سال تولید"
-                      type="number"
+                    <FormField
+                      value={formData.productionYear}
+                      onChange={handleInputChange("productionYear")}
+                      placeholder="سال تولید"
+                      showCancelIcon
+                      onCancel={() => handleInputChange("productionYear")("")}
+                      error={!!errors.productionYear}
+                      helperText={errors.productionYear}
                       slotProps={{
                         htmlInput: {
                           min: 1000,
                           max: new Date().getFullYear(),
                         },
                       }}
-                      value={formData.productionYear || ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "productionYear",
-                          parseInt(e.target.value) || null
-                        )
-                      }
-                      error={!!errors.productionYear}
-                      helperText={errors.productionYear}
+                      type="number"
                     />
-
-                    <TextField
-                      fullWidth
-                      label="رنگ خودرو"
+                    <FormField
                       value={formData.color}
-                      onChange={(e) =>
-                        handleInputChange("color", e.target.value)
-                      }
-                      placeholder="مثال: قرمز"
+                      onChange={handleInputChange("color")}
+                      placeholder="رنگ خودرو"
+                      showCancelIcon
+                      onCancel={() => handleInputChange("color")("")}
+                      error={!!errors.color}
+                      helperText={errors.color}
                     />
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom>
-                        پلاک {formData.selectedType?.name_fa || "خودرو"}
-                      </Typography>
-                      {formData.selectedType?.name_fa === "موتورسیکلت" ? (
-                        // Motorcycle license plate format (2 rows)
-                        <Box sx={{ mb: 2 }} dir="ltr">
-                          <Grid container spacing={1} sx={{ mb: 1 }}>
-                            <Grid size={12}>
-                              <TextField
-                                fullWidth
-                                label="شماره بالا (۳ رقم)"
-                                value={
-                                  formData.licensePlate.split("-")[0] || ""
-                                }
-                                onChange={(e) => {
-                                  const parts =
-                                    formData.licensePlate.split("-");
-                                  parts[0] = e.target.value;
-                                  const newPlate = parts.join("-");
-                                  handleInputChange("licensePlate", newPlate);
-                                }}
-                                slotProps={{ htmlInput: { maxLength: 3 } }}
-                                placeholder="123"
-                              />
-                            </Grid>
-                          </Grid>
-                          <Grid container spacing={1}>
-                            <Grid size={12}>
-                              <TextField
-                                fullWidth
-                                label="شماره پایین"
-                                value={
-                                  formData.licensePlate.split("-")[1] || ""
-                                }
-                                onChange={(e) => {
-                                  const parts =
-                                    formData.licensePlate.split("-");
-                                  parts[1] = e.target.value;
-                                  const newPlate = parts.join("-");
-                                  handleInputChange("licensePlate", newPlate);
-                                }}
-                                slotProps={{ htmlInput: { maxLength: 5 } }}
-                                placeholder="12345"
-                              />
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      ) : (
-                        // Car license plate format (4 parts in one row)
-                        <Grid container spacing={1} sx={{ mb: 2 }} dir="ltr">
-                          <Grid size={3}>
-                            <TextField
-                              fullWidth
-                              label="دو رقم"
-                              value={formData.licensePlate.split("-")[0] || ""}
-                              onChange={(e) => {
-                                const parts = formData.licensePlate.split("-");
-                                parts[0] = e.target.value;
-                                const newPlate = parts.join("-");
-                                handleInputChange("licensePlate", newPlate);
-                              }}
-                              slotProps={{ htmlInput: { maxLength: 2 } }}
-                              placeholder="12"
-                            />
-                          </Grid>
-                          <Grid size={3}>
-                            <FormControl fullWidth>
-                              <InputLabel>حرف</InputLabel>
-                              <Select
-                                value={
-                                  formData.licensePlate.split("-")[1] || ""
-                                }
-                                onChange={(e) => {
-                                  const parts =
-                                    formData.licensePlate.split("-");
-                                  parts[1] = e.target.value;
-                                  const newPlate = parts.join("-");
-                                  handleInputChange("licensePlate", newPlate);
-                                }}
-                                label="حرف"
-                              >
-                                {[
-                                  { display: "الف", value: "الف" },
-                                  { display: "ب", value: "ب" },
-                                  { display: "پ", value: "پ" },
-                                  { display: "ت", value: "ت" },
-                                  { display: "ث", value: "ث" },
-                                  { display: "ج", value: "ج" },
-                                  { display: "د", value: "د" },
-                                  { display: "ز", value: "ز" },
-                                  { display: "س", value: "س" },
-                                  { display: "ش", value: "ش" },
-                                  { display: "ص", value: "ص" },
-                                  { display: "ط", value: "ط" },
-                                  { display: "ع", value: "ع" },
-                                  { display: "ف", value: "ف" },
-                                  { display: "ق", value: "ق" },
-                                  { display: "ک", value: "ک" },
-                                  { display: "گ", value: "گ" },
-                                  { display: "ل", value: "ل" },
-                                  { display: "م", value: "م" },
-                                  { display: "ن", value: "ن" },
-                                  { display: "و", value: "و" },
-                                  { display: "ه", value: "ه" },
-                                  { display: "ی", value: "ی" },
-                                  {
-                                    display: (
-                                      <span style={{ fontSize: "2em" }}>
-                                        ♿︎
-                                      </span>
-                                    ),
-                                    value: "ژ",
-                                  },
-                                  { display: "D", value: "D" },
-                                  { display: "S", value: "S" },
-                                ].map((item) => (
-                                  <MenuItem key={item.value} value={item.value}>
-                                    {item.display}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                          <Grid size={3}>
-                            <TextField
-                              fullWidth
-                              label="سه رقم"
-                              value={formData.licensePlate.split("-")[2] || ""}
-                              onChange={(e) => {
-                                const parts = formData.licensePlate.split("-");
-                                parts[2] = e.target.value;
-                                const newPlate = parts.join("-");
-                                handleInputChange("licensePlate", newPlate);
-                              }}
-                              slotProps={{ htmlInput: { maxLength: 3 } }}
-                              placeholder="123"
-                            />
-                          </Grid>
-                          <Grid size={3}>
-                            <TextField
-                              fullWidth
-                              label="ایران"
-                              value={formData.licensePlate.split("-")[3] || ""}
-                              onChange={(e) => {
-                                const parts = formData.licensePlate.split("-");
-                                parts[3] = e.target.value;
-                                const newPlate = parts.join("-");
-                                handleInputChange("licensePlate", newPlate);
-                              }}
-                              slotProps={{ htmlInput: { maxLength: 2 } }}
-                              placeholder="12"
-                            />
-                          </Grid>
-                        </Grid>
-                      )}
-                    </Box>
 
-                    <TextField
-                      fullWidth
-                      label="شماره شاسی (VIN)"
+                    <FormField
                       value={formData.vin}
-                      onChange={(e) => handleInputChange("vin", e.target.value)}
-                      placeholder="اختیاری"
+                      onChange={handleInputChange("vin")}
+                      placeholder="شماره شاسی (VIN)"
+                      showCancelIcon
+                      onCancel={() => handleInputChange("vin")("")}
+                      showDivider={false}
                     />
-
-                    <TextField
-                      fullWidth
-                      label="تاریخ خرید"
-                      type="date"
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      value={formData.purchaseDate}
-                      onChange={(e) =>
-                        handleInputChange("purchaseDate", e.target.value)
-                      }
+                  </List>
+                  <List
+                    sx={{
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <LicensePlateInput
+                      value={formData.licensePlate}
+                      onChange={handleInputChange("licensePlate")}
+                      vehicleType={formData.selectedType?.name_fa}
+                      error={!!errors.licensePlate}
+                      helperText={errors.licensePlate}
                     />
-                  </Grid>
+                  </List>
+                  <List
+                    sx={{
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        onClick={() =>
+                          setIsEditingPurchaseDate(!isEditingPurchaseDate)
+                        }
+                      >
+                        <ListItemText
+                          primary="تاریخ خرید"
+                          slotProps={{
+                            primary: {
+                              fontSize: "1rem",
+                              color: "text.secondary",
+                              fontWeight: 500,
+                            },
+                          }}
+                        />
+                        <ListItemText
+                          primary={
+                            formatToPersianDateWithAge(formData.purchaseDate) ||
+                            "تاریخ خرید مشخص نیست"
+                          }
+                          sx={{ textAlign: "right" }}
+                          slotProps={{
+                            primary: {
+                              fontSize: "1rem",
+                              color: "text.primary",
+                              fontWeight: 400,
+                            },
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                    {/* PersianDatePicker for purchaseDate editing */}
+                    {isEditingPurchaseDate && (
+                      <PersianDatePicker
+                        label="تاریخ خرید"
+                        value={formData.purchaseDate}
+                        onChange={(newDate) => {
+                          handleInputChange("purchaseDate")(newDate);
+                        }}
+                        placeholder="تاریخ خرید خود را انتخاب کنید"
+                        showAge={true}
+                      />
+                    )}
+                  </List>
                 </Box>
               )}
 
@@ -923,7 +704,8 @@ export default function AddVehicle() {
                             تاریخ خرید:
                           </Typography>
                           <Typography variant="body1">
-                            {formData.purchaseDate || "تعیین نشده"}
+                            {formatToPersianDate(formData.purchaseDate) ||
+                              "تعیین نشده"}
                           </Typography>
                         </Grid>
                       </Grid>
@@ -1001,25 +783,21 @@ export default function AddVehicle() {
 
               {/* Action Buttons */}
               <Box
-                sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  direction: "rtl",
+                  mt: 4,
+                }}
               >
-                <Button
-                  onClick={activeStep === 0 ? () => router.back() : handleBack}
-                  startIcon={activeStep === 0 ? <Cancel /> : <NavigateNext />}
-                >
-                  {activeStep === 0 ? "انصراف" : "قبلی"}
-                </Button>
-
                 <Button
                   variant="contained"
                   onClick={
                     activeStep === steps.length - 1 ? handleSubmit : handleNext
                   }
-                  endIcon={
-                    activeStep === steps.length - 1 ? (
-                      <Save />
-                    ) : (
-                      <NavigateBefore />
+                  startIcon={
+                    activeStep === steps.length - 1 ? undefined : (
+                      <NavigateBefore sx={{ ml: 0.5 }} />
                     )
                   }
                   disabled={loading || saving}
@@ -1030,6 +808,14 @@ export default function AddVehicle() {
                       : "ذخیره خودرو"
                     : "بعدی"}
                 </Button>
+                {activeStep > 0 && (
+                  <Button
+                    onClick={handleBack}
+                    endIcon={<NavigateNext sx={{ mr: 0.5 }} />}
+                  >
+                    قبلی
+                  </Button>
+                )}
               </Box>
             </CardContent>
           </Card>

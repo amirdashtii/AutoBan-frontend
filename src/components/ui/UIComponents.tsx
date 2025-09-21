@@ -7,7 +7,6 @@ import {
   CardContent,
   Typography,
   Avatar,
-  IconButton,
   Fab,
   Badge,
   Chip,
@@ -184,7 +183,6 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         justifyContent: "space-between",
         px: 2,
         py: 1.5,
-        backgroundColor: "background.paper",
         borderBottom: 1,
         borderColor: "divider",
       }}
@@ -423,3 +421,6 @@ export const ServiceStatus: React.FC<ServiceStatusProps> = ({
     />
   );
 };
+
+// Export LicensePlateInput
+export { LicensePlateInput } from "./LicensePlateInput";

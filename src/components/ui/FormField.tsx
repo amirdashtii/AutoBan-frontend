@@ -21,9 +21,9 @@ import { useTheme } from "@mui/material/styles";
 
 interface FormFieldProps {
   label?: string;
-  value: string;
+  value: string | number | null;
   onChange: (value: string) => void;
-  type?: "text" | "email" | "password" | "date" | "tel";
+  type?: "text" | "email" | "password" | "date" | "tel" | "number";
   placeholder?: string;
   multiline?: boolean;
   rows?: number;
@@ -37,6 +37,8 @@ interface FormFieldProps {
   onTogglePasswordVisibility?: () => void;
   icon?: React.ReactNode;
   showDivider?: boolean;
+  slotProps?: any;
+  endText?: string;
 }
 
 export function FormField({
@@ -57,6 +59,8 @@ export function FormField({
   onTogglePasswordVisibility,
   icon,
   showDivider = true,
+  slotProps,
+  endText,
 }: FormFieldProps) {
   const theme = useTheme();
 
@@ -109,6 +113,16 @@ export function FormField({
             ),
             endAdornment: (
               <InputAdornment position="end">
+                {endText && (
+                  <span
+                    style={{
+                      marginRight: "8px",
+                      color: theme.palette.text.secondary,
+                    }}
+                  >
+                    {endText}
+                  </span>
+                )}
                 {showVisibilityToggle && (
                   <IconButton
                     onClick={onTogglePasswordVisibility}
@@ -129,7 +143,9 @@ export function FormField({
                 )}
               </InputAdornment>
             ),
+            ...slotProps?.input,
           },
+          ...slotProps,
         }}
       />
       {showDivider && (
