@@ -3,19 +3,15 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Card,
   CardContent,
-  TextField,
   Typography,
   Alert,
-  Grid,
   CircularProgress,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
 import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,15 +20,13 @@ import {
   Header,
   ResponsiveContainer,
   SlideIn,
-  SaveButton,
-  CancelButton,
+  FormField,
+  LicensePlateInput,
+  PersianDatePicker,
 } from "@/components/ui";
 import { IranLicensePlate } from "@/components/ui";
-import {
-  vehicleService,
-  UserVehicleResponse,
-  CreateUserVehicleRequest,
-} from "@/services/vehicleService";
+import { vehicleService, UserVehicleRequest } from "@/services/vehicleService";
+import { formatToPersianDate } from "@/utils/dateUtils";
 
 interface VehicleFormData {
   name: string;
@@ -49,6 +43,7 @@ export default function EditVehicle() {
   const params = useParams();
   const vehicleId = params?.id as string;
   const queryClient = useQueryClient();
+  const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
 
   // Fetch vehicle details
   const {
@@ -76,7 +71,7 @@ export default function EditVehicle() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<CreateUserVehicleRequest>) =>
+    mutationFn: (data: Partial<UserVehicleRequest>) =>
       vehicleService.updateUserVehicle(Number(vehicleId), data),
     onSuccess: () => {
       // Invalidate and refetch vehicle data
@@ -109,11 +104,11 @@ export default function EditVehicle() {
     }
   }, [vehicle]);
 
-  const handleInputChange = (field: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
+  const handleInputChange = (field: string) => (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const validateForm = () => {
@@ -142,13 +137,17 @@ export default function EditVehicle() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    const updateData: Partial<CreateUserVehicleRequest> = {
+    const updateData: Partial<UserVehicleRequest> = {
       name: formData.name,
-      production_year: formData.productionYear || undefined,
+      production_year: formData.productionYear
+        ? parseInt(formData.productionYear.toString())
+        : undefined,
       color: formData.color || undefined,
       license_plate: formData.licensePlate || undefined,
       vin: formData.vin || undefined,
-      current_mileage: formData.currentMileage || undefined,
+      current_mileage: formData.currentMileage
+        ? parseInt(formData.currentMileage.toString())
+        : undefined,
       purchase_date: formData.purchaseDate || undefined,
     };
 
@@ -157,15 +156,13 @@ export default function EditVehicle() {
 
   if (vehicleLoading) {
     return (
-      <AppContainer
-        header={
-          <Header
-            title="ویرایش خودرو"
-            showBack
-            onBackClick={() => router.back()}
-          />
-        }
-      >
+      <AppContainer>
+        <Header
+          title="ویرایش خودرو"
+          showBack
+          onBackClick={() => router.back()}
+        />
+
         <ResponsiveContainer padding="medium" fullHeight={false}>
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
             <CircularProgress />
@@ -177,15 +174,13 @@ export default function EditVehicle() {
 
   if (vehicleError || !vehicle) {
     return (
-      <AppContainer
-        header={
-          <Header
-            title="ویرایش خودرو"
-            showBack
-            onBackClick={() => router.back()}
-          />
-        }
-      >
+      <AppContainer>
+        <Header
+          title="ویرایش خودرو"
+          showBack
+          onBackClick={() => router.back()}
+        />
+
         <ResponsiveContainer padding="medium" fullHeight={false}>
           <Alert severity="error">
             خطا در بارگذاری اطلاعات خودرو. لطفاً دوباره تلاش کنید.
@@ -196,16 +191,16 @@ export default function EditVehicle() {
   }
 
   return (
-    <AppContainer
-      header={
-        <Header
-          title="ویرایش خودرو"
-          subtitle={vehicle.name}
-          showBack
-          onBackClick={() => router.back()}
-        />
-      }
-    >
+    <AppContainer>
+      <Header
+        title="ویرایش خودرو"
+        showCancelButton
+        onCancelClick={() => router.back()}
+        showSaveButton
+        onSaveClick={handleSubmit}
+        isSaving={updateMutation.isPending}
+        isSaveDisabled={updateMutation.isPending}
+      />
       <ResponsiveContainer padding="medium" fullHeight={false}>
         {/* Error Alert */}
         {errors.submit && (
@@ -220,7 +215,14 @@ export default function EditVehicle() {
         <SlideIn direction="up" delay={100}>
           <Card>
             <CardContent>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 3,
+                  py: 8,
+                }}
+              >
                 {/* Vehicle Info Display */}
                 <Box sx={{ textAlign: "center", mb: 2 }}>
                   <Typography variant="h6" gutterBottom>
@@ -251,261 +253,132 @@ export default function EditVehicle() {
                 )}
 
                 {/* Form Fields */}
-                <TextField
-                  fullWidth
-                  label="نام خودرو *"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                />
-
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="سال تولید"
-                      type="number"
-                      slotProps={{
-                        htmlInput: {
-                          min: 1300,
-                          max: new Date().getFullYear(),
-                        },
-                      }}
-                      value={formData.productionYear || ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "productionYear",
-                          parseInt(e.target.value) || null
-                        )
-                      }
-                      error={!!errors.productionYear}
-                      helperText={errors.productionYear}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="رنگ خودرو"
-                      value={formData.color}
-                      onChange={(e) =>
-                        handleInputChange("color", e.target.value)
-                      }
-                    />
-                  </Grid>
-                </Grid>
-
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    پلاک {vehicle.type?.name_fa || "خودرو"}
-                  </Typography>
-                  {vehicle.type?.name_fa === "موتورسیکلت" ? (
-                    // Motorcycle license plate format (2 rows)
-                    <Box sx={{ mb: 2 }} dir="ltr">
-                      <Grid container spacing={1} sx={{ mb: 1 }}>
-                        <Grid size={12}>
-                          <TextField
-                            fullWidth
-                            label="شماره بالا (۳ رقم)"
-                            value={formData.licensePlate.split("-")[0] || ""}
-                            onChange={(e) => {
-                              const parts = formData.licensePlate.split("-");
-                              parts[0] = e.target.value;
-                              const newPlate = parts.join("-");
-                              handleInputChange("licensePlate", newPlate);
-                            }}
-                            slotProps={{ htmlInput: { maxLength: 3 } }}
-                            placeholder="123"
-                          />
-                        </Grid>
-                      </Grid>
-                      <Grid container spacing={1}>
-                        <Grid size={12}>
-                          <TextField
-                            fullWidth
-                            label="شماره پایین (۵ رقم)"
-                            value={formData.licensePlate.split("-")[1] || ""}
-                            onChange={(e) => {
-                              const parts = formData.licensePlate.split("-");
-                              parts[1] = e.target.value;
-                              const newPlate = parts.join("-");
-                              handleInputChange("licensePlate", newPlate);
-                            }}
-                            slotProps={{ htmlInput: { maxLength: 5 } }}
-                            placeholder="12345"
-                          />
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  ) : (
-                    // Car license plate format (4 parts in one row)
-                    <Grid container spacing={1} sx={{ mb: 2 }} dir="ltr">
-                      <Grid size={3}>
-                        <TextField
-                          fullWidth
-                          label="دو رقم"
-                          value={formData.licensePlate.split("-")[0] || ""}
-                          onChange={(e) => {
-                            const parts = formData.licensePlate.split("-");
-                            parts[0] = e.target.value;
-                            const newPlate = parts.join("-");
-                            handleInputChange("licensePlate", newPlate);
-                          }}
-                          slotProps={{ htmlInput: { maxLength: 2 } }}
-                          placeholder="12"
-                        />
-                      </Grid>
-                      <Grid size={3}>
-                        <FormControl fullWidth>
-                          <InputLabel>حرف</InputLabel>
-                          <Select
-                            value={formData.licensePlate.split("-")[1] || ""}
-                            onChange={(e) => {
-                              const parts = formData.licensePlate.split("-");
-                              parts[1] = e.target.value;
-                              const newPlate = parts.join("-");
-                              handleInputChange("licensePlate", newPlate);
-                            }}
-                            label="حرف"
-                          >
-                            {[
-                              { display: "الف", value: "الف" },
-                              { display: "ب", value: "ب" },
-                              { display: "پ", value: "پ" },
-                              { display: "ت", value: "ت" },
-                              { display: "ث", value: "ث" },
-                              { display: "ج", value: "ج" },
-                              { display: "د", value: "د" },
-                              { display: "ز", value: "ز" },
-                              {
-                                display: (
-                                  <span style={{ fontSize: "2em" }}>♿︎</span>
-                                ),
-                                value: "ژ",
-                              },
-                              { display: "س", value: "س" },
-                              { display: "ش", value: "ش" },
-                              { display: "ص", value: "ص" },
-                              { display: "ط", value: "ط" },
-                              { display: "ع", value: "ع" },
-                              { display: "ف", value: "ف" },
-                              { display: "ق", value: "ق" },
-                              { display: "ک", value: "ک" },
-                              { display: "گ", value: "گ" },
-                              { display: "ل", value: "ل" },
-                              { display: "م", value: "م" },
-                              { display: "ن", value: "ن" },
-                              { display: "و", value: "و" },
-                              { display: "ه", value: "ه" },
-                              { display: "ی", value: "ی" },
-                              { display: "D", value: "D" },
-                              { display: "S", value: "S" },
-                            ].map((item) => (
-                              <MenuItem key={item.value} value={item.value}>
-                                {item.display}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid size={3}>
-                        <TextField
-                          fullWidth
-                          label="سه رقم"
-                          value={formData.licensePlate.split("-")[2] || ""}
-                          onChange={(e) => {
-                            const parts = formData.licensePlate.split("-");
-                            parts[2] = e.target.value;
-                            const newPlate = parts.join("-");
-                            handleInputChange("licensePlate", newPlate);
-                          }}
-                          slotProps={{ htmlInput: { maxLength: 3 } }}
-                          placeholder="345"
-                        />
-                      </Grid>
-                      <Grid size={3}>
-                        <TextField
-                          fullWidth
-                          label="ایران"
-                          value={formData.licensePlate.split("-")[3] || ""}
-                          onChange={(e) => {
-                            const parts = formData.licensePlate.split("-");
-                            parts[3] = e.target.value;
-                            const newPlate = parts.join("-");
-                            handleInputChange("licensePlate", newPlate);
-                          }}
-                          slotProps={{ htmlInput: { maxLength: 2 } }}
-                          placeholder="98"
-                        />
-                      </Grid>
-                    </Grid>
-                  )}
-                </Box>
-
-                <TextField
-                  fullWidth
-                  label="شماره شاسی (VIN)"
-                  value={formData.vin}
-                  onChange={(e) => handleInputChange("vin", e.target.value)}
-                />
-
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="کیلومتر فعلی"
-                      type="number"
-                      slotProps={{
-                        htmlInput: { min: 0 },
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              کیلومتر
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                      value={formData.currentMileage || ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "currentMileage",
-                          parseInt(e.target.value) || null
-                        )
-                      }
-                      error={!!errors.currentMileage}
-                      helperText={errors.currentMileage}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="تاریخ خرید"
-                      type="date"
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      value={formData.purchaseDate}
-                      onChange={(e) =>
-                        handleInputChange("purchaseDate", e.target.value)
-                      }
-                    />
-                  </Grid>
-                </Grid>
-
-                {/* Action Buttons */}
-                <Box
+                <List
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mt: 4,
+                    backgroundColor: "background.paper",
+                    borderRadius: 1,
                   }}
                 >
-                  <CancelButton onClick={() => router.back()} />
-
-                  <SaveButton
-                    onClick={handleSubmit}
-                    loading={updateMutation.isPending}
-                    loadingText="در حال ذخیره..."
+                  <FormField
+                    value={formData.name}
+                    onChange={handleInputChange("name")}
+                    placeholder={`نام ${vehicle.type?.name_fa}*`}
+                    showCancelIcon
+                    onCancel={() => handleInputChange("name")("")}
+                    error={!!errors.name}
+                    helperText={errors.name}
                   />
-                </Box>
+                  <FormField
+                    value={formData.currentMileage}
+                    onChange={handleInputChange("currentMileage")}
+                    placeholder="کیلومتر فعلی"
+                    showCancelIcon
+                    onCancel={() => handleInputChange("currentMileage")("")}
+                    error={!!errors.currentMileage}
+                    helperText={errors.currentMileage}
+                    endText="کیلومتر"
+                    type="number"
+                  />
+                  <FormField
+                    value={formData.productionYear}
+                    onChange={handleInputChange("productionYear")}
+                    placeholder="سال تولید"
+                    showCancelIcon
+                    onCancel={() => handleInputChange("productionYear")("")}
+                    error={!!errors.productionYear}
+                    helperText={errors.productionYear}
+                    slotProps={{
+                      htmlInput: {
+                        min: 1000,
+                        max: new Date().getFullYear(),
+                      },
+                    }}
+                    type="number"
+                  />
+                  <FormField
+                    value={formData.color}
+                    onChange={handleInputChange("color")}
+                    placeholder="رنگ خودرو"
+                    showCancelIcon
+                    onCancel={() => handleInputChange("color")("")}
+                    error={!!errors.color}
+                    helperText={errors.color}
+                  />
+                  <FormField
+                    value={formData.vin}
+                    onChange={handleInputChange("vin")}
+                    placeholder="شماره شاسی (VIN)"
+                    showCancelIcon
+                    onCancel={() => handleInputChange("vin")("")}
+                    showDivider={false}
+                  />
+                </List>
+                <List
+                  sx={{
+                    backgroundColor: "background.paper",
+                    borderRadius: 1,
+                  }}
+                >
+                  <LicensePlateInput
+                    value={formData.licensePlate}
+                    onChange={handleInputChange("licensePlate")}
+                    vehicleType={vehicle.type?.name_fa}
+                    error={!!errors.licensePlate}
+                    helperText={errors.licensePlate}
+                  />
+                </List>
+
+                <List
+                  sx={{
+                    backgroundColor: "background.paper",
+                    borderRadius: 1,
+                  }}
+                >
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() =>
+                        setIsEditingPurchaseDate(!isEditingPurchaseDate)
+                      }
+                    >
+                      <ListItemText
+                        primary="تاریخ خرید"
+                        slotProps={{
+                          primary: {
+                            fontSize: "1rem",
+                            color: "text.secondary",
+                            fontWeight: 500,
+                          },
+                        }}
+                      />
+                      <ListItemText
+                        primary={
+                          formatToPersianDate(formData.purchaseDate) ||
+                          "تاریخ خرید مشخص نیست"
+                        }
+                        sx={{ textAlign: "right" }}
+                        slotProps={{
+                          primary: {
+                            fontSize: "1rem",
+                            color: "text.primary",
+                            fontWeight: 400,
+                          },
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                  {/* PersianDatePicker for purchaseDate editing */}
+                  {isEditingPurchaseDate && (
+                    <PersianDatePicker
+                      label="تاریخ خرید"
+                      value={formData.purchaseDate}
+                      onChange={(newDate) => {
+                        handleInputChange("purchaseDate")(newDate);
+                      }}
+                      placeholder="تاریخ خرید خود را انتخاب کنید"
+                      showAge={true}
+                    />
+                  )}
+                </List>
               </Box>
             </CardContent>
           </Card>

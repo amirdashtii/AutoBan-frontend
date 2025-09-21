@@ -41,6 +41,7 @@ import {
   VehicleBrand,
   VehicleModel,
   VehicleGeneration,
+  UserVehicleRequest,
 } from "@/services/vehicleService";
 import { useVehicleHierarchy } from "@/hooks/useVehicles";
 import {
@@ -280,7 +281,7 @@ export default function AddVehicle() {
 
     setSaving(true);
     try {
-      const requestData = {
+      const requestData: UserVehicleRequest = {
         name: formData.name,
         generation_id: formData.selectedGeneration!.id,
         production_year: formData.productionYear

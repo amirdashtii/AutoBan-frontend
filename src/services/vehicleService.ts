@@ -84,7 +84,7 @@ export interface VehicleGenerationTree {
   name_en: string;
 }
 
-export interface CreateUserVehicleRequest {
+export interface UserVehicleRequest {
   name: string;
   generation_id: number;
   production_year?: number;
@@ -156,7 +156,7 @@ export const vehicleService = {
 
   // افزودن خودرو جدید
   async createUserVehicle(
-    data: CreateUserVehicleRequest
+    data: UserVehicleRequest
   ): Promise<UserVehicleResponse> {
     const response = await apiRequest<UserVehicleResponse>("/user/vehicles", {
       method: "POST",
@@ -184,7 +184,7 @@ export const vehicleService = {
   // ویرایش خودرو
   async updateUserVehicle(
     vehicleId: number,
-    data: Partial<CreateUserVehicleRequest>
+    data: Partial<UserVehicleRequest>
   ): Promise<UserVehicleResponse> {
     const response = await apiRequest<UserVehicleResponse>(
       `/user/vehicles/${vehicleId}`,

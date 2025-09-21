@@ -10,7 +10,7 @@ import {
 
 interface ListItemInfoProps {
   label: string;
-  value: string;
+  value: string | number;
   icon?: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
