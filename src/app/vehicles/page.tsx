@@ -243,6 +243,11 @@ export default function Vehicles() {
           subtitle={`${stats.totalVehicles} خودرو`}
           showAddButton
           onAddClick={() => router.push("/vehicles/add")}
+          rightActions={[
+            <Button key="all-services" size="small" onClick={() => router.push("/services")}>
+              مشاهده همه سرویس‌ها
+            </Button>,
+          ]}
         />
       }
     >

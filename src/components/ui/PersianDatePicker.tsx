@@ -13,6 +13,7 @@ import {
   FormControl,
   Divider,
 } from "@mui/material";
+import { toPersianDigits } from "@/utils/digits";
 
 interface PersianDatePickerProps {
   value?: string; // Gregorian date string (YYYY-MM-DD format)
@@ -184,7 +185,7 @@ export function PersianDatePicker({
           >
             {days.map((day) => (
               <MenuItem key={day} value={day}>
-                {day}
+                {toPersianDigits(day)}
               </MenuItem>
             ))}
           </Select>
@@ -240,7 +241,7 @@ export function PersianDatePicker({
           >
             {years.map((year) => (
               <MenuItem key={year} value={year}>
-                {year}
+                {toPersianDigits(year)}
               </MenuItem>
             ))}
           </Select>
@@ -249,7 +250,14 @@ export function PersianDatePicker({
 
       <Divider variant="middle" sx={{ borderColor: "divider" }} />
 
-      <Box sx={{ pt: 2 }}>
+      <Box
+        sx={{
+          pt: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Typography
           variant="body2"
           sx={{
@@ -266,6 +274,25 @@ export function PersianDatePicker({
           }}
         >
           {label ? `حذف ${label}` : "حذف تاریخ"}
+        </Typography>
+
+        <Typography
+          variant="body2"
+          sx={{
+            color: "primary.main",
+            fontWeight: 500,
+            cursor: "pointer",
+            "&:hover": {
+              textDecoration: "underline",
+            },
+          }}
+          onClick={() => {
+            const today = new Date();
+            const todayGregorian = today.toISOString().split("T")[0];
+            onChange?.(todayGregorian);
+          }}
+        >
+          امروز
         </Typography>
       </Box>
     </Box>

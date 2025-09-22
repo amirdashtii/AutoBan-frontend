@@ -110,7 +110,6 @@ export const Header: React.FC<HeaderProps> = ({
         color="primary"
         sx={{
           minWidth: "auto",
-          px: 1,
           py: 0.5,
           fontSize: "0.875rem",
         }}
@@ -129,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({
         disabled={isAddDisabled}
         sx={{
           minWidth: "auto",
-          px: 2,
           py: 0.5,
           fontSize: "0.875rem",
         }}
@@ -146,7 +144,6 @@ export const Header: React.FC<HeaderProps> = ({
         disabled={isEditDisabled}
         sx={{
           minWidth: "auto",
-          px: 2,
           py: 0.5,
           fontSize: "0.875rem",
         }}
@@ -163,7 +160,6 @@ export const Header: React.FC<HeaderProps> = ({
         disabled={isSaveDisabled}
         sx={{
           minWidth: "auto",
-          px: 2,
           py: 0.5,
           fontSize: "0.875rem",
         }}
@@ -180,12 +176,11 @@ export const Header: React.FC<HeaderProps> = ({
         disabled={isCancelDisabled}
         sx={{
           minWidth: "auto",
-          px: 2,
           py: 0.5,
           fontSize: "0.875rem",
         }}
       >
-        لغو
+        انصراف
       </Button>
     ) : null;
 

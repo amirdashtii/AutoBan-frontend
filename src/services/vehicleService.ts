@@ -112,6 +112,72 @@ export interface UserVehicleResponse {
   generation?: VehicleGeneration;
 }
 
+// Service Visit DTOs
+export interface ServiceVisitOilChangeRequest {
+  oil_name: string;
+  oil_brand?: string;
+  oil_type?: string;
+  oil_viscosity?: string;
+  oil_capacity?: number;
+  next_change_mileage?: number;
+  next_change_date?: string; // YYYY-MM-DD
+  notes?: string;
+}
+
+export interface ServiceVisitOilFilterRequest {
+  filter_name: string;
+  filter_brand?: string;
+  filter_type?: string;
+  filter_part_number?: string;
+  next_change_mileage?: number;
+  next_change_date?: string; // YYYY-MM-DD
+  notes?: string;
+}
+
+export interface CreateServiceVisitRequest {
+  user_vehicle_id?: number; // backend requires; path param as well
+  service_mileage: number;
+  service_date: string; // YYYY-MM-DD
+  service_center?: string;
+  notes?: string;
+  oil_change?: ServiceVisitOilChangeRequest;
+  oil_filter?: ServiceVisitOilFilterRequest;
+}
+
+export interface ServiceVisitResponse {
+  id: string;
+  user_vehicle_id: number;
+  service_mileage: number;
+  service_date: string;
+  service_center: string;
+  notes: string;
+  oil_change?: {
+    id: number;
+    oil_name: string;
+    oil_brand?: string;
+    oil_type?: string;
+    oil_viscosity?: string;
+    oil_capacity?: number;
+    next_change_mileage?: number;
+    next_change_date?: string;
+    notes?: string;
+  };
+  oil_filter?: {
+    id: number;
+    filter_name: string;
+    filter_brand?: string;
+    filter_type?: string;
+    filter_part_number?: string;
+    next_change_mileage?: number;
+    next_change_date?: string;
+    notes?: string;
+  };
+}
+
+export interface ListServiceVisitsResponse {
+  service_visits: ServiceVisitResponse[];
+}
+
 export const vehicleService = {
   // دریافت hierarchy کامل
   async getCompleteHierarchy(): Promise<VehicleHierarchy> {
@@ -199,5 +265,33 @@ export const vehicleService = {
   // حذف خودرو
   async deleteUserVehicle(vehicleId: number): Promise<void> {
     await apiRequest(`/user/vehicles/${vehicleId}`, { method: "DELETE" });
+  },
+
+  // Service Visits
+  async createServiceVisit(
+    vehicleId: number,
+    data: CreateServiceVisitRequest
+  ): Promise<ServiceVisitResponse> {
+    const response = await apiRequest<ServiceVisitResponse>(
+      `/user/vehicles/${vehicleId}/service-visits`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+    return response;
+  },
+
+  async listServiceVisits(vehicleId: number): Promise<ServiceVisitResponse[]> {
+    const response = await apiRequest<ListServiceVisitsResponse>(
+      `/user/vehicles/${vehicleId}/service-visits`
+    );
+    return response.service_visits;
+  },
+
+  async getLastServiceVisit(vehicleId: number): Promise<ServiceVisitResponse> {
+    return await apiRequest<ServiceVisitResponse>(
+      `/user/vehicles/${vehicleId}/service-visits/last`
+    );
   },
 };

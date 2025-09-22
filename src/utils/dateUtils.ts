@@ -25,6 +25,25 @@ export const formatToPersianDate = (dateString?: string): string => {
   }
 };
 
+// Persian date in numeric form (e.g., 1402/07/15)
+export const formatToPersianDateNumeric = (dateString?: string): string => {
+  if (!dateString) return "";
+
+  try {
+    const gregorianDate = new Date(dateString);
+    if (isNaN(gregorianDate.getTime())) return "";
+
+    const persianDate = new DateObject(gregorianDate);
+    persianDate.calendar = persian;
+    persianDate.locale = persian_fa;
+
+    return persianDate.format("YYYY/MM/DD");
+  } catch (error) {
+    console.error("Error converting date to Persian numeric:", error);
+    return "";
+  }
+};
+
 /**
  * Converts a Gregorian date string to Persian date with age calculation
  * @param dateString - ISO date string (Gregorian)
